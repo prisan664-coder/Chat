@@ -85,7 +85,8 @@
     <!-- นำเข้า Firebase และ Logic Script -->
     <script type="module">
         import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import {getDatabase, ref, set, get, child} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import {getDatabase, ref, set, get, child, update}
+            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         // 1. Firebase Configuration
         const firebaseConfig = {
@@ -192,7 +193,7 @@
 
                     if (data.otpCode === inputOtp) {
                         // รหัสถูกต้อง -> บันทึก User ลงฐานข้อมูล (ถ้ายังไม่มี)
-                        await set(ref(db, 'users/' + currentPhone), {
+                        await update(ref(db, 'users/' + currentPhone), {
                             phoneNumber: currentPhone,
                             lastLogin: Date.now(),
                             role: 'user'
