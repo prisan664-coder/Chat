@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ฮักคู่ใจ - แชทและโทรหาเพื่อน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -22,114 +23,223 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        <style>html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        input,
+        textarea {
+            font-size: 16px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* ป้องกันการเลือก/ลากที่ไม่จำเป็นบนมือถือ */
+        button {
+            touch-action: manipulation;
+        }
+
+        /* มือถือ */
+        @media (max-width: 767px) {
+
+            #sidebar,
+            #chat-window {
+                width: 100%;
+                height: 100dvh;
+                min-height: 0;
+            }
+
+            #active-chat {
+                height: 100dvh;
+                min-height: 0;
+            }
+
+            #messages-container {
+                min-height: 0;
+                padding: 10px;
+            }
+
+            /* Header แชท */
+            #chat-window #active-chat>div:first-child {
+                padding: 10px;
+            }
+
+            /* ปุ่มโทร */
+            #btn-voice-call,
+            #btn-video-call {
+                padding: 8px;
+            }
+
+            /* ช่องพิมพ์ */
+            #chat-form {
+                gap: 6px;
+            }
+
+            #message-input {
+                min-width: 0;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            #btn-send-msg {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* ป้องกันข้อความยาวดันหน้าจอ */
+            #messages-container * {
+                max-width: 100%;
+            }
+
+            /* Modal บนมือถือ */
+            #call-screen-modal {
+                padding: 12px;
+            }
+
+            #call-screen-modal>div:nth-child(2) {
+                height: 55dvh;
+            }
+
+            #local-video {
+                width: 80px;
+                height: 115px;
+                right: 10px;
+                bottom: 10px;
+            }
+        }
+    </style>
     </style>
 </head>
 
-<body class="bg-slate-100 h-screen flex justify-center items-center p-0 md:p-4">
+<body class="bg-slate-100 w-full h-[100dvh] overflow-hidden flex justify-center items-center p-0 md:p-4"></body>
 
-    <!-- Main Container -->
-    <div
-        class="bg-white w-full max-w-5xl h-full md:h-[90vh] md:rounded-2xl shadow-2xl flex overflow-hidden border border-slate-200 relative">
+<!-- Main Container -->
+<<div
+    class="bg-white w-full max-w-5xl h-[100dvh] md:h-[90vh] md:rounded-2xl shadow-2xl flex overflow-hidden border border-slate-200 relative">
 
-        <!-- ==================== SIDEBAR ==================== -->
-        <div id="sidebar" class="w-full md:w-80 lg:w-96 bg-slate-50 border-r border-slate-200 flex flex-col h-full">
+    <!-- ==================== SIDEBAR ==================== -->
+    <div id="sidebar" class="w-full md:w-80 lg:w-96 bg-slate-50 border-r border-slate-200 flex flex-col h-full">
 
-            <!-- User Profile Header -->
-            <div class="p-4 bg-rose-500 text-white flex justify-between items-center shadow-md">
-                <div class="flex items-center space-x-3">
-                    <div
-                        class="w-10 h-10 rounded-full bg-white text-rose-500 font-bold flex items-center justify-center text-lg shadow">
-                        👤
-                    </div>
-                    <div>
-                        <h2 class="font-semibold text-sm">เบอร์ของคุณ</h2>
-                        <p id="my-phone-display" class="text-xs text-rose-100 font-mono">08XXXXXXXX</p>
-                    </div>
-                </div>
-                <button id="btn-logout" class="text-xs bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-lg transition">
-                    ออกจากระบบ
-                </button>
-            </div>
-
-            <!-- Add Friend Box -->
-            <div class="p-4 bg-white border-b border-slate-200 space-y-2">
-                <label class="block text-xs font-semibold text-slate-500 uppercase">เพิ่มเพื่อนใหม่</label>
-                <input type="tel" id="add-friend-phone" placeholder="เบอร์โทรศัพท์เพื่อน (10 หลัก)" maxlength="10"
-                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-                <input type="text" id="add-friend-name" placeholder="ชื่อที่ต้องการบันทึก"
-                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-                <button id="btn-add-friend"
-                    class="w-full bg-rose-500 hover:bg-rose-600 text-white text-sm py-2 rounded-xl font-medium transition">
-                    + บันทึกเพื่อน
-                </button>
-            </div>
-
-            <!-- Friends List -->
-            <div class="flex-1 overflow-y-auto p-2 space-y-1 no-scrollbar" id="friends-list">
-                <p class="text-center text-xs text-slate-400 py-6">กำลังดึงรายชื่อเพื่อน...</p>
-            </div>
-
-        </div>
-
-        <!-- ==================== MAIN CHAT AREA ==================== -->
-        <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-slate-100">
-
-            <div id="no-chat-selected" class="flex-1 flex flex-col justify-center items-center text-slate-400 p-6">
+        <!-- User Profile Header -->
+        <div class="p-4 bg-rose-500 text-white flex justify-between items-center shadow-md">
+            <div class="flex items-center space-x-3">
                 <div
-                    class="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center text-4xl mb-4">
-                    💬</div>
-                <p class="text-base font-medium text-slate-600">เลือกเพื่อนจากรายชื่อเพื่อเริ่มคุยแชท</p>
+                    class="w-10 h-10 rounded-full bg-white text-rose-500 font-bold flex items-center justify-center text-lg shadow">
+                    👤
+                </div>
+                <div>
+                    <h2 class="font-semibold text-sm">เบอร์ของคุณ</h2>
+                    <p id="my-phone-display" class="text-xs text-rose-100 font-mono">08XXXXXXXX</p>
+                </div>
+            </div>
+            <button id="btn-logout" class="text-xs bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-lg transition">
+                ออกจากระบบ
+            </button>
+        </div>
+
+        <!-- Add Friend Box -->
+        <div class="p-4 bg-white border-b border-slate-200 space-y-2">
+            <label class="block text-xs font-semibold text-slate-500 uppercase">เพิ่มเพื่อนใหม่</label>
+            <input type="tel" id="add-friend-phone" placeholder="เบอร์โทรศัพท์เพื่อน (10 หลัก)" maxlength="10"
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
+            <input type="text" id="add-friend-name" placeholder="ชื่อที่ต้องการบันทึก"
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
+            <button id="btn-add-friend"
+                class="w-full bg-rose-500 hover:bg-rose-600 text-white text-sm py-2 rounded-xl font-medium transition">
+                + บันทึกเพื่อน
+            </button>
+        </div>
+
+        <!-- Friends List -->
+        <div class="flex-1 overflow-y-auto p-2 space-y-1 no-scrollbar" id="friends-list">
+            <p class="text-center text-xs text-slate-400 py-6">กำลังดึงรายชื่อเพื่อน...</p>
+        </div>
+
+    </div>
+
+    <!-- ==================== MAIN CHAT AREA ==================== -->
+    <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-slate-100">
+
+        <div id="no-chat-selected" class="flex-1 flex flex-col justify-center items-center text-slate-400 p-6">
+            <div class="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center text-4xl mb-4">
+                💬</div>
+            <p class="text-base font-medium text-slate-600">เลือกเพื่อนจากรายชื่อเพื่อเริ่มคุยแชท</p>
+        </div>
+
+        <!-- Chat Active Screen -->
+        <div id="active-chat" class="hidden flex-1 flex-col h-full">
+
+            <!-- Chat Header -->
+            <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm">
+                <div id="chat-header-clickable"
+                    class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition">
+                    <button id="btn-back-sidebar" class="md:hidden text-slate-500 text-xl font-bold pr-2">←</button>
+                    <div
+                        class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center">
+                        📱</div>
+                    <div>
+                        <h3 id="chat-target-name" class="font-bold text-slate-800 text-sm">ชื่อเพื่อน / เบอร์โทร
+                        </h3>
+                        <p id="chat-target-phone" class="text-xs text-slate-400 font-mono">08XXXXXXXX</p>
+                    </div>
+                    <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200">⚙️
+                        ตั้งค่า</span>
+                </div>
+
+                <!-- Call Buttons -->
+                <div class="flex items-center space-x-2">
+                    <button id="btn-voice-call"
+                        class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+                        title="โทรเสียง">📞</button>
+                    <button id="btn-video-call"
+                        class="p-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition shadow-sm"
+                        title="วิดีโอคอล">📹</button>
+                </div>
             </div>
 
-            <!-- Chat Active Screen -->
-            <div id="active-chat" class="hidden flex-1 flex-col h-full">
+            <!-- Messages Box -->
+            <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100 no-scrollbar">
+            </div>
 
-                <!-- Chat Header -->
-                <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm">
-                    <div id="chat-header-clickable"
-                        class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition">
-                        <button id="btn-back-sidebar" class="md:hidden text-slate-500 text-xl font-bold pr-2">←</button>
-                        <div
-                            class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center">
-                            📱</div>
-                        <div>
-                            <h3 id="chat-target-name" class="font-bold text-slate-800 text-sm">ชื่อเพื่อน / เบอร์โทร
-                            </h3>
-                            <p id="chat-target-phone" class="text-xs text-slate-400 font-mono">08XXXXXXXX</p>
-                        </div>
-                        <span
-                            class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200">⚙️
-                            ตั้งค่า</span>
-                    </div>
-
-                    <!-- Call Buttons -->
-                    <div class="flex items-center space-x-2">
-                        <button id="btn-voice-call"
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
-                            title="โทรเสียง">📞</button>
-                        <button id="btn-video-call"
-                            class="p-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition shadow-sm"
-                            title="วิดีโอคอล">📹</button>
-                    </div>
-                </div>
-
-                <!-- Messages Box -->
-                <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100 no-scrollbar">
-                </div>
-
-                <!-- Chat Input Bar -->
-                <div class="p-3 bg-white border-t border-slate-200">
-                    <form id="chat-form" class="flex space-x-2">
-                        <input type="text" id="message-input" placeholder="พิมพ์ข้อความของคุณ..." autocomplete="off"
-                            class="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:bg-white outline-none transition text-sm">
-                        <button type="submit" id="btn-send-msg"
-                            class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center text-sm shrink-0">ส่ง</button>
-                    </form>
-                </div>
-
+            <!-- Chat Input Bar -->
+            <div class="p-3 bg-white border-t border-slate-200">
+                <form id="chat-form" class="flex space-x-2">
+                    <input type="text" id="message-input" placeholder="พิมพ์ข้อความของคุณ..." autocomplete="off"
+                        class="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:bg-white outline-none transition text-sm">
+                    <button type="submit" id="btn-send-msg"
+                        class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center text-sm shrink-0">ส่ง</button>
+                </form>
             </div>
 
         </div>
+
+    </div>
 
     </div>
 
@@ -743,6 +853,6 @@
         });
     </script>
 
-</body>
+    </body>
 
 </html>
