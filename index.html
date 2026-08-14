@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฮักคู่ใจ - เข้าสู่ระบบ</title>
+    <!-- Tailwind CSS สำหรับจัดสไตล์ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Prompt ของ Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 border border-slate-200">
+        <!-- Header/Logo -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 bg-rose-100 text-rose-500 rounded-full mb-3 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">ฮักคู่ใจ (Hukhujai)</h1>
+            <p class="text-slate-500 text-sm mt-1">ยินดีต้อนรับสู่ระบบแชทและวิดีโอคอล</p>
+        </div>
+
+        <!-- Step 1: กรอกเบอร์โทรศัพท์ -->
+        <div id="step-phone" class="space-y-5">
+            <div>
+                <label for="phone-input" class="block text-sm font-medium text-slate-700 mb-1">เบอร์โทรศัพท์</label>
+                <div class="relative">
+                    <input type="tel" id="phone-input" placeholder="0812345678" maxlength="10"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition text-slate-800 font-medium tracking-wide">
+                </div>
+                <p class="text-xs text-slate-400 mt-1">* กรอกเฉพาะตัวเลข 10 หลัก</p>
+            </div>
+
+            <button id="btn-request-otp"
+                class="w-full bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-medium py-3 rounded-xl shadow-md shadow-rose-200 transition duration-200 flex items-center justify-center">
+                <span>ขอรับรหัส OTP</span>
+            </button>
+        </div>
+
+        <!-- Step 2: กรอกรหัส OTP (ซ่อนไว้ก่อน) -->
+        <div id="step-otp" class="space-y-5 hidden">
+            <div class="bg-rose-50 border border-rose-100 rounded-xl p-4 text-center">
+                <p class="text-sm text-slate-600">
+                    คำขอสำหรับเบอร์ <span id="display-phone" class="font-bold text-rose-600"></span>
+                </p>
+                <p class="text-xs text-rose-500 mt-1 font-medium">
+                    ⚠️ กรุณาติดต่อแอดมินเพื่อขอรับรหัส OTP 6 หลัก
+                </p>
+            </div>
+
+            <div>
+                <label for="otp-input" class="block text-sm font-medium text-slate-700 mb-1">รหัส OTP (6 หลัก)</label>
+                <input type="text" id="otp-input" placeholder="000000" maxlength="6"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition text-center text-2xl font-bold tracking-widest text-slate-800">
+            </div>
+
+            <button id="btn-verify-otp"
+                class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md shadow-emerald-200 transition duration-200">
+                เข้าสู่ระบบ
+            </button>
+
+            <button id="btn-back"
+                class="w-full bg-transparent hover:bg-slate-100 text-slate-500 font-medium py-2 rounded-xl transition text-sm">
+                ← เปลี่ยนเบอร์โทรศัพท์
+            </button>
+        </div>
+
+        <!-- ข้อความแจ้งเตือนสถานะ / ข้อผิดพลาด -->
+        <div id="status-message" class="mt-4 text-center text-sm font-medium hidden"></div>
+    </div>
+
+    <!-- นำเข้า Firebase และ Logic Script -->
+    <script type="module">
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {getDatabase, ref, set, get, child} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        // 1. Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBriOzZumxBXSpwL6Kavvyd089UiPzTQfw",
+            authDomain: "hukhujai-app.firebaseapp.com",
+            databaseURL: "https://hukhujai-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "hukhujai-app",
+            storageBucket: "hukhujai-app.firebasestorage.app",
+            messagingSenderId: "536937955261",
+            appId: "1:536937955261:web:4a35c99a854a1e58c89cd4",
+            measurementId: "G-EXTZ6V7CBH"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Elements
+        const stepPhone = document.getElementById('step-phone');
+        const stepOtp = document.getElementById('step-otp');
+        const phoneInput = document.getElementById('phone-input');
+        const otpInput = document.getElementById('otp-input');
+        const displayPhone = document.getElementById('display-phone');
+        const statusMessage = document.getElementById('status-message');
+
+        const btnRequestOtp = document.getElementById('btn-request-otp');
+        const btnVerifyOtp = document.getElementById('btn-verify-otp');
+        const btnBack = document.getElementById('btn-back');
+
+        let currentPhone = '';
+
+        // แสดงข้อความสถานะ
+        function showStatus(msg, isError = false) {
+            statusMessage.textContent = msg;
+            statusMessage.className = `mt-4 text-center text-sm font-medium block ${isError ? 'text-rose-500' : 'text-emerald-600'}`;
+        }
+
+        function clearStatus() {
+            statusMessage.textContent = '';
+            statusMessage.className = 'mt-4 text-center text-sm font-medium hidden';
+        }
+
+        // 2. ขั้นตอนขอ OTP
+        btnRequestOtp.addEventListener('click', async () => {
+            const phoneNumber = phoneInput.value.trim();
+
+            if (!phoneNumber || phoneNumber.length < 9) {
+                showStatus('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง', true);
+                return;
+            }
+
+            try {
+                btnRequestOtp.disabled = true;
+                btnRequestOtp.innerHTML = 'กำลังขอ OTP...';
+                clearStatus();
+
+                // สุ่มเลข OTP 6 หลัก
+                const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                currentPhone = phoneNumber;
+
+                // บันทึกลง Firebase Realtime Database ที่โหนด /otp_requests/{phoneNumber}
+                await set(ref(db, 'otp_requests/' + phoneNumber), {
+                    phoneNumber: phoneNumber,
+                    otpCode: generatedOtp,
+                    status: 'pending',
+                    createdAt: Date.now()
+                });
+
+                // สลับไปแสดงหน้ากรอก OTP
+                displayPhone.textContent = phoneNumber;
+                stepPhone.classList.add('hidden');
+                stepOtp.classList.remove('hidden');
+                showStatus('ส่งคำขอสำเร็จแล้ว กรุณาติดต่อแอดมินเพื่อขอรับรหัส OTP');
+
+            } catch (error) {
+                console.error("Error requesting OTP:", error);
+                showStatus('เกิดข้อผิดพลาดในการขอ OTP กรุณาลองใหม่อีกครั้ง', true);
+            } finally {
+                btnRequestOtp.disabled = false;
+                btnRequestOtp.innerHTML = 'ขอรับรหัส OTP';
+            }
+        });
+
+        // 3. ขั้นตอนตรวจสอบ OTP
+        btnVerifyOtp.addEventListener('click', async () => {
+            const inputOtp = otpInput.value.trim();
+
+            if (inputOtp.length !== 6) {
+                showStatus('กรุณากรอกรหัส OTP ให้ครบ 6 หลัก', true);
+                return;
+            }
+
+            try {
+                btnVerifyOtp.disabled = true;
+                btnVerifyOtp.innerHTML = 'กำลังตรวจสอบ...';
+                clearStatus();
+
+                // อ่านข้อมูล OTP จาก Firebase
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, `otp_requests/${currentPhone}`));
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+
+                    if (data.otpCode === inputOtp) {
+                        // รหัสถูกต้อง -> บันทึก User ลงฐานข้อมูล (ถ้ายังไม่มี)
+                        await set(ref(db, 'users/' + currentPhone), {
+                            phoneNumber: currentPhone,
+                            lastLogin: Date.now(),
+                            role: 'user'
+                        });
+
+                        // บันทึก Session เก็บไว้ในเครื่องลูกค้า
+                        localStorage.setItem('userPhone', currentPhone);
+
+                        showStatus('เข้าสู่ระบบสำเร็จ! กำลังนำคุณเข้าสู่ระบบ...');
+
+                        // ย้ายหน้าไปยังรายชื่อเพื่อน (ปรับเปลี่ยนตามชื่อไฟล์ของคุณได้)
+                        setTimeout(() => {
+                            window.location.href = 'chat.html';
+                        }, 1500);
+
+                    } else {
+                        showStatus('รหัส OTP ไม่ถูกต้อง กรุณาตรวจสอบกับแอดมินอีกครั้ง', true);
+                    }
+                } else {
+                    showStatus('ไม่พบคำขอ OTP สำหรับเบอร์นี้ กรุณากดขอใหม่', true);
+                }
+
+            } catch (error) {
+                console.error("Error verifying OTP:", error);
+                showStatus('เกิดข้อผิดพลาดในการตรวจสอบ OTP', true);
+            } finally {
+                btnVerifyOtp.disabled = false;
+                btnVerifyOtp.innerHTML = 'เข้าสู่ระบบ';
+            }
+        });
+
+        // ย้อนกลับไปเปลี่ยนเบอร์
+        btnBack.addEventListener('click', () => {
+            stepOtp.classList.add('hidden');
+            stepPhone.classList.remove('hidden');
+            otpInput.value = '';
+            clearStatus();
+        });
+    </script>
+
+</body>
+
+</html>

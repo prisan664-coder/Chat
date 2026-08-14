@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฮักคู่ใจ - แชทและโทรหาเพื่อน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PeerJS Library สำหรับการโทรแบบ WebRTC -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 h-screen flex justify-center items-center p-0 md:p-4">
+
+    <!-- Main Container -->
+    <div
+        class="bg-white w-full max-w-5xl h-full md:h-[90vh] md:rounded-2xl shadow-2xl flex overflow-hidden border border-slate-200 relative">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <div id="sidebar" class="w-full md:w-80 lg:w-96 bg-slate-50 border-r border-slate-200 flex flex-col h-full">
+
+            <!-- User Profile Header -->
+            <div class="p-4 bg-rose-500 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-full bg-white text-rose-500 font-bold flex items-center justify-center text-lg shadow">
+                        👤
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-sm">เบอร์ของคุณ</h2>
+                        <p id="my-phone-display" class="text-xs text-rose-100 font-mono">08XXXXXXXX</p>
+                    </div>
+                </div>
+                <button id="btn-logout" class="text-xs bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-lg transition">
+                    ออกจากระบบ
+                </button>
+            </div>
+
+            <!-- Add Friend Box -->
+            <div class="p-4 bg-white border-b border-slate-200 space-y-2">
+                <label class="block text-xs font-semibold text-slate-500 uppercase">เพิ่มเพื่อนใหม่</label>
+                <input type="tel" id="add-friend-phone" placeholder="เบอร์โทรศัพท์เพื่อน (10 หลัก)" maxlength="10"
+                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
+                <input type="text" id="add-friend-name" placeholder="ชื่อที่ต้องการบันทึก"
+                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
+                <button id="btn-add-friend"
+                    class="w-full bg-rose-500 hover:bg-rose-600 text-white text-sm py-2 rounded-xl font-medium transition">
+                    + บันทึกเพื่อน
+                </button>
+            </div>
+
+            <!-- Friends List -->
+            <div class="flex-1 overflow-y-auto p-2 space-y-1 no-scrollbar" id="friends-list">
+                <p class="text-center text-xs text-slate-400 py-6">กำลังดึงรายชื่อเพื่อน...</p>
+            </div>
+
+        </div>
+
+        <!-- ==================== MAIN CHAT AREA ==================== -->
+        <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-slate-100">
+
+            <div id="no-chat-selected" class="flex-1 flex flex-col justify-center items-center text-slate-400 p-6">
+                <div
+                    class="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center text-4xl mb-4">
+                    💬</div>
+                <p class="text-base font-medium text-slate-600">เลือกเพื่อนจากรายชื่อเพื่อเริ่มคุยแชท</p>
+            </div>
+
+            <!-- Chat Active Screen -->
+            <div id="active-chat" class="hidden flex-1 flex-col h-full">
+
+                <!-- Chat Header -->
+                <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm">
+                    <div id="chat-header-clickable"
+                        class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition">
+                        <button id="btn-back-sidebar" class="md:hidden text-slate-500 text-xl font-bold pr-2">←</button>
+                        <div
+                            class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center">
+                            📱</div>
+                        <div>
+                            <h3 id="chat-target-name" class="font-bold text-slate-800 text-sm">ชื่อเพื่อน / เบอร์โทร
+                            </h3>
+                            <p id="chat-target-phone" class="text-xs text-slate-400 font-mono">08XXXXXXXX</p>
+                        </div>
+                        <span
+                            class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200">⚙️
+                            ตั้งค่า</span>
+                    </div>
+
+                    <!-- Call Buttons -->
+                    <div class="flex items-center space-x-2">
+                        <button id="btn-voice-call"
+                            class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+                            title="โทรเสียง">📞</button>
+                        <button id="btn-video-call"
+                            class="p-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition shadow-sm"
+                            title="วิดีโอคอล">📹</button>
+                    </div>
+                </div>
+
+                <!-- Messages Box -->
+                <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100 no-scrollbar">
+                </div>
+
+                <!-- Chat Input Bar -->
+                <div class="p-3 bg-white border-t border-slate-200">
+                    <form id="chat-form" class="flex space-x-2">
+                        <input type="text" id="message-input" placeholder="พิมพ์ข้อความของคุณ..." autocomplete="off"
+                            class="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:bg-white outline-none transition text-sm">
+                        <button type="submit" id="btn-send-msg"
+                            class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center text-sm shrink-0">ส่ง</button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ==================== MODAL: มีสายเรียกเข้า (Incoming Call) ==================== -->
+    <div id="incoming-call-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-6 text-center space-y-5 shadow-2xl animate-bounce">
+            <div
+                class="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto border-4 border-rose-300 animate-pulse">
+                📞
+            </div>
+            <div>
+                <h4 id="caller-name" class="font-bold text-slate-800 text-lg">เบอร์โทร...</h4>
+                <p id="call-type-text" class="text-xs text-slate-500 mt-1">กำลังโทรหาคุณ...</p>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button id="btn-reject-call"
+                    class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg transition">
+                    🚫 ปฏิเสธ
+                </button>
+                <button id="btn-accept-call"
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg transition">
+                    📞 รับสาย
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: หน้าต่างสนทนาคอล (Active Call Screen) ==================== -->
+    <div id="call-screen-modal"
+        class="fixed inset-0 bg-slate-900/95 hidden flex-col items-center justify-between p-6 z-50">
+        <!-- Header Call Info -->
+        <div class="text-center text-white mt-4">
+            <h3 id="call-screen-name" class="text-xl font-bold">ชื่อคู่สนทนา</h3>
+            <p id="call-status" class="text-xs text-rose-300 mt-1">กำลังเชื่อมต่อสาย...</p>
+        </div>
+
+        <!-- Video Area -->
+        <div
+            class="relative w-full max-w-lg h-[50vh] bg-black rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
+            <!-- Video ปลายทาง -->
+            <video id="remote-video" autoplay playsinline class="w-full h-full object-cover"></video>
+            <!-- Video ตัวเรา (มุมขวาล่าง) -->
+            <video id="local-video" autoplay playsinline muted
+                class="absolute bottom-4 right-4 w-28 h-40 bg-slate-800 rounded-2xl border-2 border-white object-cover shadow-md"></video>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="flex items-center space-x-6 mb-6">
+            <button id="btn-toggle-mic"
+                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center transition">🎙️</button>
+            <button id="btn-end-call"
+                class="w-16 h-16 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-2xl flex items-center justify-center shadow-lg transition">📞</button>
+            <button id="btn-toggle-cam"
+                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center transition">📹</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements สำหรับเสียงแจ้งเตือน -->
+    <audio id="ringtone-incoming" loop
+        src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm.ogg"></audio>
+    <audio id="ringtone-outgoing" loop src="https://actions.google.com/sounds/v1/emergency/beeping_call.ogg"></audio>
+
+    <!-- ==================== MODAL: SETTINGS ==================== -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-40">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">ตั้งค่าการสนทนา</h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">ชื่อบันทึกส่วนตัว</label>
+                <input type="text" id="setting-edit-name" placeholder="ตั้งชื่อเล่น..."
+                    class="w-full px-3 py-2 text-sm border rounded-xl outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">เลือกสีธีมแชท</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button data-theme="rose"
+                        class="theme-btn p-3 rounded-xl bg-rose-500 text-white font-medium text-xs text-center border-2 border-transparent">ชมพู</button>
+                    <button data-theme="sky"
+                        class="theme-btn p-3 rounded-xl bg-sky-500 text-white font-medium text-xs text-center border-2 border-transparent">ฟ้า</button>
+                    <button data-theme="emerald"
+                        class="theme-btn p-3 rounded-xl bg-emerald-500 text-white font-medium text-xs text-center border-2 border-transparent">เขียว</button>
+                    <button data-theme="purple"
+                        class="theme-btn p-3 rounded-xl bg-purple-500 text-white font-medium text-xs text-center border-2 border-transparent">ม่วง</button>
+                </div>
+            </div>
+            <div>
+                <label
+                    class="block text-xs font-semibold text-slate-600 uppercase mb-1">ระยะเวลาลบข้อความอัตโนมัติ</label>
+                <select id="setting-auto-delete" class="w-full px-3 py-2 text-sm border rounded-xl outline-none">
+                    <option value="off">ปิดการทำงาน (ไม่ลบ)</option>
+                    <option value="1min">ลบข้อความเกิน 1 นาที</option>
+                    <option value="1hour">ลบข้อความเกิน 1 ชั่วโมง</option>
+                    <option value="24hours">ลบข้อความเกิน 24 ชั่วโมง</option>
+                </select>
+            </div>
+            <button id="btn-save-settings"
+                class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl font-medium text-sm transition">บันทึกการตั้งค่า</button>
+            <div class="border-t pt-4 space-y-2">
+                <button id="btn-clear-all-messages"
+                    class="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-2 rounded-xl text-xs font-semibold transition">🗑️
+                    ลบประวัติข้อความทั้งหมด</button>
+                <button id="btn-block-friend"
+                    class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 py-2 rounded-xl text-xs font-semibold transition">🚫
+                    บล็อกและลบเพื่อน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {getDatabase, ref, set, push, onValue, get, remove, update} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBriOzZumxBXSpwL6Kavvyd089UiPzTQfw",
+            authDomain: "hukhujai-app.firebaseapp.com",
+            databaseURL: "https://hukhujai-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "hukhujai-app",
+            storageBucket: "hukhujai-app.firebasestorage.app",
+            messagingSenderId: "536937955261",
+            appId: "1:536937955261:web:4a35c99a854a1e58c89cd4",
+            measurementId: "G-EXTZ6V7CBH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const myPhone = localStorage.getItem('userPhone');
+        if (!myPhone) window.location.href = 'index.html';
+
+        document.getElementById('my-phone-display').textContent = myPhone;
+
+        // Elements
+        const friendsList = document.getElementById('friends-list');
+        const addFriendPhone = document.getElementById('add-friend-phone');
+        const addFriendName = document.getElementById('add-friend-name');
+        const btnAddFriend = document.getElementById('btn-add-friend');
+        const btnLogout = document.getElementById('btn-logout');
+
+        const sidebar = document.getElementById('sidebar');
+        const chatWindow = document.getElementById('chat-window');
+        const noChatSelected = document.getElementById('no-chat-selected');
+        const activeChat = document.getElementById('active-chat');
+        const chatTargetName = document.getElementById('chat-target-name');
+        const chatTargetPhone = document.getElementById('chat-target-phone');
+        const messagesContainer = document.getElementById('messages-container');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const btnSendMsg = document.getElementById('btn-send-msg');
+        const btnBackSidebar = document.getElementById('btn-back-sidebar');
+
+        // Call Elements
+        const btnVoiceCall = document.getElementById('btn-voice-call');
+        const btnVideoCall = document.getElementById('btn-video-call');
+        const incomingCallModal = document.getElementById('incoming-call-modal');
+        const callerName = document.getElementById('caller-name');
+        const callTypeText = document.getElementById('call-type-text');
+        const btnAcceptCall = document.getElementById('btn-accept-call');
+        const btnRejectCall = document.getElementById('btn-reject-call');
+
+        const callScreenModal = document.getElementById('call-screen-modal');
+        const callScreenName = document.getElementById('call-screen-name');
+        const callStatus = document.getElementById('call-status');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const btnToggleMic = document.getElementById('btn-toggle-mic');
+        const btnToggleCam = document.getElementById('btn-toggle-cam');
+        const btnEndCall = document.getElementById('btn-end-call');
+
+        const ringtoneIncoming = document.getElementById('ringtone-incoming');
+        const ringtoneOutgoing = document.getElementById('ringtone-outgoing');
+
+        // PeerJS Variables
+        let peer = new Peer(myPhone); // ID คือเบอร์โทรเรา
+        let localStream = null;
+        let currentCall = null;
+        let currentActiveFriend = null;
+        let pendingCallData = null;
+        let micEnabled = true;
+        let camEnabled = true;
+
+        // Settings Variables
+        let selectedTheme = 'rose';
+        let currentThemeClass = 'bg-rose-500';
+        const themes = {
+            rose: {bg: 'bg-rose-500'}, sky: {bg: 'bg-sky-500'},
+            emerald: {bg: 'bg-emerald-500'}, purple: {bg: 'bg-purple-500'}
+        };
+
+        btnLogout.addEventListener('click', () => {
+            localStorage.removeItem('userPhone');
+            window.location.href = 'index.html';
+        });
+
+        function getChatRoomId(p1, p2) {
+            return p1 < p2 ? `chat_${p1}_${p2}` : `chat_${p2}_${p1}`;
+        }
+
+        function formatDateTime(timestamp) {
+            if (!timestamp) return '';
+            const d = new Date(timestamp);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`;
+        }
+
+        // ==================== CALLING SYSTEM LOGIC ==================== //
+
+        // 1. ตรวจจับการโทรเข้าผ่าน Firebase
+        onValue(ref(db, `calls/${myPhone}`), (snapshot) => {
+            const callData = snapshot.val();
+            if (callData && callData.status === 'ringing') {
+                pendingCallData = callData;
+                callerName.textContent = callData.callerName || callData.callerPhone;
+                callTypeText.textContent = callData.isVideo ? 'กำลังวิดีโอคอลหาคุณ...' : 'กำลังโทรเสียงหาคุณ...';
+
+                incomingCallModal.classList.remove('hidden');
+                incomingCallModal.classList.add('flex');
+                ringtoneIncoming.play().catch(() => { });
+            } else if (!callData && pendingCallData) {
+                // ฝั่งโน้นวางสาย / ยกเลิก
+                closeCallUI();
+            }
+        });
+
+        // 2. PeerJS รอรับ Call Media
+        peer.on('call', async (call) => {
+            currentCall = call;
+            call.on('stream', (remoteStream) => {
+                remoteVideo.srcObject = remoteStream;
+            });
+            call.on('close', () => {
+                endCallSession();
+            });
+        });
+
+        // 3. กดโทรออก (เสียง หรือ วิดีโอ)
+        async function startCall(isVideo) {
+            if (!currentActiveFriend) return;
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: isVideo,
+                    audio: true
+                });
+                localVideo.srcObject = localStream;
+
+                callScreenModal.classList.remove('hidden');
+                callScreenModal.classList.add('flex');
+                callScreenName.textContent = chatTargetName.textContent;
+                callStatus.textContent = 'กำลังส่งสัญญาณเรียกสาย...';
+                ringtoneOutgoing.play().catch(() => { });
+
+                // ส่งสัญญาณบอกปลายทาง
+                await set(ref(db, `calls/${currentActiveFriend}`), {
+                    callerPhone: myPhone,
+                    callerName: chatTargetName.textContent,
+                    isVideo: isVideo,
+                    status: 'ringing'
+                });
+
+                // โทรผ่าน PeerJS
+                const call = peer.call(currentActiveFriend, localStream);
+                currentCall = call;
+
+                call.on('stream', (remoteStream) => {
+                    ringtoneOutgoing.pause();
+                    callStatus.textContent = 'กำลังสนทนา...';
+                    remoteVideo.srcObject = remoteStream;
+                });
+
+                call.on('close', () => {
+                    endCallSession();
+                });
+
+            } catch (err) {
+                alert('ไม่สามารถเข้าถึงไมโครโฟน หรือกล้องได้: ' + err.message);
+            }
+        }
+
+        btnVoiceCall.addEventListener('click', () => startCall(false));
+        btnVideoCall.addEventListener('click', () => startCall(true));
+
+        // 4. กดรับสาย (Accept Call)
+        btnAcceptCall.addEventListener('click', async () => {
+            if (!pendingCallData) return;
+
+            ringtoneIncoming.pause();
+            incomingCallModal.classList.add('hidden');
+            incomingCallModal.classList.remove('flex');
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: pendingCallData.isVideo,
+                    audio: true
+                });
+                localVideo.srcObject = localStream;
+
+                callScreenModal.classList.remove('hidden');
+                callScreenModal.classList.add('flex');
+                callScreenName.textContent = pendingCallData.callerName || pendingCallData.callerPhone;
+                callStatus.textContent = 'กำลังสนทนา...';
+
+                if (currentCall) {
+                    currentCall.answer(localStream);
+                }
+
+                // อัปเดตสถานะใน Firebase
+                await update(ref(db, `calls/${myPhone}`), {status: 'answered'});
+
+            } catch (err) {
+                alert('ไม่สามารถรับสายได้เนื่องจากสิทธิ์กล้อง/ไมค์: ' + err.message);
+                endCallSession();
+            }
+        });
+
+        // 5. กดปฏิเสธสาย (Reject Call)
+        btnRejectCall.addEventListener('click', async () => {
+            ringtoneIncoming.pause();
+            await remove(ref(db, `calls/${myPhone}`));
+            closeCallUI();
+        });
+
+        // 6. กดวางสาย (End Call)
+        btnEndCall.addEventListener('click', () => {
+            endCallSession();
+        });
+
+        async function endCallSession() {
+            if (currentActiveFriend) {
+                await remove(ref(db, `calls/${currentActiveFriend}`));
+            }
+            await remove(ref(db, `calls/${myPhone}`));
+            closeCallUI();
+        }
+
+        function closeCallUI() {
+            ringtoneIncoming.pause();
+            ringtoneOutgoing.pause();
+            ringtoneIncoming.currentTime = 0;
+            ringtoneOutgoing.currentTime = 0;
+
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            incomingCallModal.classList.add('hidden');
+            incomingCallModal.classList.remove('flex');
+            callScreenModal.classList.add('hidden');
+            callScreenModal.classList.remove('flex');
+            pendingCallData = null;
+        }
+
+        // ปุ่มเปิด/ปิด ไมค์ และ กล้อง
+        btnToggleMic.addEventListener('click', () => {
+            if (localStream) {
+                micEnabled = !micEnabled;
+                localStream.getAudioTracks()[0].enabled = micEnabled;
+                btnToggleMic.textContent = micEnabled ? '🎙️' : '🔇';
+            }
+        });
+
+        btnToggleCam.addEventListener('click', () => {
+            if (localStream && localStream.getVideoTracks().length > 0) {
+                camEnabled = !camEnabled;
+                localStream.getVideoTracks()[0].enabled = camEnabled;
+                btnToggleCam.textContent = camEnabled ? '📹' : '📷';
+            }
+        });
+
+        // ==================== FRIENDS & CHAT SYSTEM ==================== //
+
+        btnAddFriend.addEventListener('click', async () => {
+            const friendPhone = addFriendPhone.value.trim();
+            const friendName = addFriendName.value.trim();
+
+            if (!friendPhone || friendPhone.length < 9) {
+                alert('กรุณากรอกเบอร์โทรศัพท์เพื่อนให้ถูกต้อง');
+                return;
+            }
+            if (friendPhone === myPhone) {
+                alert('ไม่สามารถบันทึกเบอร์ตัวเองเป็นเพื่อนได้');
+                return;
+            }
+
+            await set(ref(db, `users/${myPhone}/contacts/${friendPhone}`), {savedName: friendName || friendPhone});
+            const friendSide = await get(ref(db, `users/${friendPhone}/contacts/${myPhone}`));
+            if (!friendSide.exists()) {
+                await set(ref(db, `users/${friendPhone}/contacts/${myPhone}`), {savedName: myPhone});
+            }
+
+            addFriendPhone.value = '';
+            addFriendName.value = '';
+            alert(`บันทึกเพื่อนเบอร์ ${friendPhone} สำเร็จ!`);
+        });
+
+        onValue(ref(db, `users/${myPhone}/contacts`), (snapshot) => {
+            const contacts = snapshot.val();
+            friendsList.innerHTML = '';
+
+            if (contacts) {
+                Object.keys(contacts).forEach((friendPhone) => {
+                    const contactObj = contacts[friendPhone];
+                    const displayName = (typeof contactObj === 'object' && contactObj.savedName) ? contactObj.savedName : friendPhone;
+
+                    const item = document.createElement('div');
+                    item.className = `p-3 rounded-xl cursor-pointer flex items-center space-x-3 transition hover:bg-slate-200/60 ${currentActiveFriend === friendPhone ? 'bg-rose-100 border border-rose-200' : 'bg-white border border-slate-100'}`;
+
+                    item.innerHTML = `
+            <div class="w-10 h-10 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center text-sm shadow-sm">📱</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-800 truncate">${displayName}</p>
+              <p class="text-xs text-slate-400 font-mono">${friendPhone}</p>
+            </div>
+          `;
+
+                    item.addEventListener('click', () => openChatWith(friendPhone, displayName));
+                    friendsList.appendChild(item);
+                });
+            } else {
+                friendsList.innerHTML = '<p class="text-center text-xs text-slate-400 py-6">ยังไม่มีเพื่อนในรายการ</p>';
+            }
+        });
+
+        async function openChatWith(friendPhone, displayName) {
+            currentActiveFriend = friendPhone;
+            chatTargetName.textContent = displayName;
+            chatTargetPhone.textContent = friendPhone;
+
+            noChatSelected.classList.add('hidden');
+            activeChat.classList.remove('hidden');
+            activeChat.classList.add('flex');
+            sidebar.classList.add('hidden', 'md:flex');
+            chatWindow.classList.remove('hidden');
+
+            const settingsSnap = await get(ref(db, `users/${myPhone}/chat_settings/${friendPhone}`));
+            if (settingsSnap.exists()) {
+                const s = settingsSnap.val();
+                selectedTheme = s.theme || 'rose';
+                document.getElementById('setting-auto-delete').value = s.autoDelete || 'off';
+            } else {
+                selectedTheme = 'rose';
+                document.getElementById('setting-auto-delete').value = 'off';
+            }
+            applyTheme(selectedTheme);
+
+            const roomId = getChatRoomId(myPhone, friendPhone);
+            const messagesRef = ref(db, `chats/${roomId}/messages`);
+
+            onValue(messagesRef, (snapshot) => {
+                const messages = snapshot.val();
+                messagesContainer.innerHTML = '';
+
+                if (messages) {
+                    const now = Date.now();
+                    const autoDelVal = document.getElementById('setting-auto-delete').value;
+
+                    Object.keys(messages).forEach((msgId) => {
+                        const msg = messages[msgId];
+                        const msgAgeMs = now - msg.timestamp;
+
+                        if (autoDelVal === '1min' && msgAgeMs > 60000) {
+                            remove(ref(db, `chats/${roomId}/messages/${msgId}`));
+                            return;
+                        } else if (autoDelVal === '1hour' && msgAgeMs > 3600000) {
+                            remove(ref(db, `chats/${roomId}/messages/${msgId}`));
+                            return;
+                        } else if (autoDelVal === '24hours' && msgAgeMs > 86400000) {
+                            remove(ref(db, `chats/${roomId}/messages/${msgId}`));
+                            return;
+                        }
+
+                        const isMe = msg.sender === myPhone;
+                        const msgRow = document.createElement('div');
+                        msgRow.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+                        msgRow.innerHTML = `
+              <div class="flex items-center space-x-2 max-w-[85%] ${isMe ? 'flex-row-reverse space-x-reverse' : 'flex-row'}">
+                <div class="px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isMe ? `${currentThemeClass} text-white rounded-br-none` : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'}">
+                  <p class="break-words">${msg.text}</p>
+                </div>
+                ${isMe ? `
+                  <div class="flex items-center space-x-1 shrink-0 bg-white/80 p-1 rounded-xl shadow-xs border border-slate-200/60">
+                    <button class="btn-edit-msg p-1 hover:bg-slate-100 rounded-lg text-xs" data-id="${msgId}" data-text="${msg.text}">✏️</button>
+                    <button class="btn-delete-msg p-1 hover:bg-rose-100 rounded-lg text-xs text-rose-500 font-bold" data-id="${msgId}">🗑️</button>
+                  </div>
+                ` : ''}
+              </div>
+              <span class="text-[10px] text-slate-400 mt-1 px-1">${formatDateTime(msg.timestamp)} ${msg.isEdited ? '(แก้ไขแล้ว)' : ''}</span>
+            `;
+
+                        messagesContainer.appendChild(msgRow);
+                    });
+
+                    document.querySelectorAll('.btn-delete-msg').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const msgId = e.currentTarget.getAttribute('data-id');
+                            if (confirm('ยกเลิกข้อความนี้หรือไม่?')) {
+                                await remove(ref(db, `chats/${roomId}/messages/${msgId}`));
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll('.btn-edit-msg').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const msgId = e.currentTarget.getAttribute('data-id');
+                            const oldText = e.currentTarget.getAttribute('data-text');
+                            const newText = prompt('แก้ไขข้อความ:', oldText);
+
+                            if (newText && newText.trim() !== '' && newText !== oldText) {
+                                update(ref(db, `chats/${roomId}/messages/${msgId}`), {text: newText.trim(), isEdited: true});
+                            }
+                        });
+                    });
+
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                } else {
+                    messagesContainer.innerHTML = '<p class="text-center text-xs text-slate-400 my-auto py-10">ยังไม่มีข้อความ</p>';
+                }
+            });
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (!text || !currentActiveFriend) return;
+
+            const roomId = getChatRoomId(myPhone, currentActiveFriend);
+            await set(push(ref(db, `chats/${roomId}/messages`)), {
+                sender: myPhone,
+                text: text,
+                timestamp: Date.now()
+            });
+
+            messageInput.value = '';
+        });
+
+        function applyTheme(themeKey) {
+            selectedTheme = themeKey;
+            currentThemeClass = themes[themeKey]?.bg || 'bg-rose-500';
+            btnSendMsg.className = `${currentThemeClass} hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center text-sm shrink-0`;
+        }
+
+        // Modal Control
+        document.getElementById('chat-header-clickable').addEventListener('click', () => {
+            if (!currentActiveFriend) return;
+            document.getElementById('setting-edit-name').value = chatTargetName.textContent;
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        });
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+        });
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => applyTheme(e.target.getAttribute('data-theme')));
+        });
+
+        document.getElementById('btn-save-settings').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            const newName = document.getElementById('setting-edit-name').value.trim();
+            const autoDeleteVal = document.getElementById('setting-auto-delete').value;
+
+            await set(ref(db, `users/${myPhone}/contacts/${currentActiveFriend}/savedName`), newName || currentActiveFriend);
+            chatTargetName.textContent = newName || currentActiveFriend;
+
+            await set(ref(db, `users/${myPhone}/chat_settings/${currentActiveFriend}`), {theme: selectedTheme, autoDelete: autoDeleteVal});
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+            openChatWith(currentActiveFriend, newName || currentActiveFriend);
+        });
+
+        document.getElementById('btn-clear-all-messages').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            if (confirm('ยืนยันลบข้อความทั้งหมดหรือไม่?')) {
+                await remove(ref(db, `chats/${getChatRoomId(myPhone, currentActiveFriend)}`));
+                document.getElementById('settings-modal').classList.add('hidden');
+                document.getElementById('settings-modal').classList.remove('flex');
+            }
+        });
+
+        document.getElementById('btn-block-friend').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            if (confirm(`บล็อกและลบเพื่อน (${currentActiveFriend}) หรือไม่?`)) {
+                const roomId = getChatRoomId(myPhone, currentActiveFriend);
+                await remove(ref(db, `users/${myPhone}/contacts/${currentActiveFriend}`));
+                await remove(ref(db, `users/${currentActiveFriend}/contacts/${myPhone}`));
+                await remove(ref(db, `chats/${roomId}`));
+                await remove(ref(db, `users/${myPhone}/chat_settings/${currentActiveFriend}`));
+
+                document.getElementById('settings-modal').classList.add('hidden');
+                document.getElementById('settings-modal').classList.remove('flex');
+                activeChat.classList.add('hidden');
+                noChatSelected.classList.remove('hidden');
+                sidebar.classList.remove('hidden');
+                currentActiveFriend = null;
+            }
+        });
+
+        btnBackSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('hidden');
+            chatWindow.classList.add('hidden');
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ฮักคู่ใจ (OTP Manager)</title>
+    <!-- Tailwind CSS สำหรับจัดสไตล์ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Prompt ของ Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Top Header Bar -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">ระบบจัดการรหัส OTP (Admin Dashboard)</h1>
+                    <p class="text-sm text-slate-400">แอปพลิเคชัน: ฮักคู่ใจ (hukhujai-app)</p>
+                </div>
+            </div>
+
+            <!-- Live Connection Indicator -->
+            <div
+                class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full w-fit">
+                <span class="relative flex h-3 w-3">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span class="text-xs font-semibold text-emerald-400">เชื่อมต่อข้อมูลแบบ Real-time</span>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400">คำขอ OTP ทั้งหมด</p>
+                    <h2 id="stat-total" class="text-2xl font-bold text-white mt-1">0</h2>
+                </div>
+                <div class="p-3 bg-slate-700/50 rounded-lg text-slate-300">📱</div>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400">ขอรหัสล่าสุดเมื่อ</p>
+                    <h2 id="stat-latest" class="text-lg font-semibold text-rose-400 mt-1">-</h2>
+                </div>
+                <div class="p-3 bg-slate-700/50 rounded-lg text-slate-300">⏱️</div>
+            </div>
+        </div>
+
+        <!-- OTP Data Table -->
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+            <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-white">รายการคำขอรหัส OTP</h2>
+                <span id="loading-badge"
+                    class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded-full">กำลังโหลด...</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900/60 text-xs uppercase text-slate-400 tracking-wider">
+                        <tr>
+                            <th scope="col" class="px-6 py-4">เบอร์โทรศัพท์ลูกค้า</th>
+                            <th scope="col" class="px-6 py-4">รหัส OTP (6 หลัก)</th>
+                            <th scope="col" class="px-6 py-4">เวลาที่ขอรหัส</th>
+                            <th scope="col" class="px-6 py-4 text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="otp-table-body" class="divide-y divide-slate-700/50">
+                        <!-- ข้อมูลจะถูกฉีดใส่ตรงนี้ผ่าน JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="p-12 text-center text-slate-500 hidden">
+                <p class="text-base">ยังไม่มีรายการขอรหัส OTP ในขณะนี้</p>
+            </div>
+        </div>
+
+        <!-- Toast Notification for Copy -->
+        <div id="toast"
+            class="fixed bottom-5 right-5 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 transform translate-y-10 pointer-events-none flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span id="toast-message">คัดลอกรหัส OTP สำเร็จ!</span>
+        </div>
+
+    </div>
+
+    <!-- Firebase JavaScript Module -->
+    <script type="module">
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {getDatabase, ref, onValue, remove} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        // 1. Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBriOzZumxBXSpwL6Kavvyd089UiPzTQfw",
+            authDomain: "hukhujai-app.firebaseapp.com",
+            databaseURL: "https://hukhujai-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "hukhujai-app",
+            storageBucket: "hukhujai-app.firebasestorage.app",
+            messagingSenderId: "536937955261",
+            appId: "1:536937955261:web:4a35c99a854a1e58c89cd4",
+            measurementId: "G-EXTZ6V7CBH"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DOM Elements
+        const otpTableBody = document.getElementById('otp-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const loadingBadge = document.getElementById('loading-badge');
+        const statTotal = document.getElementById('stat-total');
+        const statLatest = document.getElementById('stat-latest');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // แสดง Toast Alert
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 2500);
+        }
+
+        // ฟังก์ชั่นแปลง timestamp เป็นเวลาไทย
+        function formatTime(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('th-TH', {hour: '2-digit', minute: '2-digit', second: '2-digit'}) + ' น.';
+        }
+
+        // 2. ดึงข้อมูล OTP แบบ Real-time ด้วย onValue
+        const otpRef = ref(db, 'otp_requests');
+
+        onValue(otpRef, (snapshot) => {
+            loadingBadge.textContent = "อัปเดตเรียบร้อย";
+            loadingBadge.className = "text-xs bg-emerald-900/50 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full";
+
+            const data = snapshot.val();
+            otpTableBody.innerHTML = '';
+
+            if (data) {
+                emptyState.classList.add('hidden');
+
+                // แปลงวัตถุเป็น Array และเรียงลำดับจากล่าสุดไปเก่าสุด
+                const requestsList = Object.keys(data).map(key => ({
+                    key: key,
+                    ...data[key]
+                })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                // อัปเดต สถิติ
+                statTotal.textContent = requestsList.length;
+                statLatest.textContent = formatTime(requestsList[0]?.createdAt);
+
+                // Render แถวตาราง
+                requestsList.forEach((item) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-700/30 transition duration-150';
+
+                    tr.innerHTML = `
+            <td class="px-6 py-4 font-medium text-white flex items-center space-x-2">
+              <span>📞</span>
+              <span class="tracking-wider">${item.phoneNumber || item.key}</span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-block bg-rose-500/20 text-rose-300 font-mono font-bold text-lg px-3 py-1 rounded-lg border border-rose-500/30 tracking-widest">
+                ${item.otpCode || '------'}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-400">
+              ${formatTime(item.createdAt)}
+            </td>
+            <td class="px-6 py-4 text-center space-x-2">
+              <button 
+                data-otp="${item.otpCode}" 
+                class="btn-copy bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition text-xs font-medium inline-flex items-center space-x-1"
+              >
+                📋 <span>คัดลอก OTP</span>
+              </button>
+              <button 
+                data-key="${item.key}" 
+                class="btn-delete bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 px-3 py-1.5 rounded-lg transition text-xs font-medium border border-rose-500/30 inline-flex items-center space-x-1"
+              >
+                🗑️ <span>ลบ</span>
+              </button>
+            </td>
+          `;
+                    otpTableBody.appendChild(tr);
+                });
+
+                // ผูก Event ให้ปุ่มคัดลอก OTP
+                document.querySelectorAll('.btn-copy').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const otp = e.currentTarget.getAttribute('data-otp');
+                        navigator.clipboard.writeText(otp);
+                        showToast(`คัดลอกรหัส OTP: ${otp} แล้ว!`);
+                    });
+                });
+
+                // ผูก Event ให้ปุ่มลบคำขอ
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const key = e.currentTarget.getAttribute('data-key');
+                        if (confirm(`คุณต้องการลบคำขอ OTP ของเบอร์ ${key} หรือไม่?`)) {
+                            await remove(ref(db, `otp_requests/${key}`));
+                            showToast('ลบรายการคำขอเรียบร้อยแล้ว');
+                        }
+                    });
+                });
+
+            } else {
+                // กรณีไม่มีข้อมูล
+                emptyState.classList.remove('hidden');
+                statTotal.textContent = '0';
+                statLatest.textContent = '-';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
