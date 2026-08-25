@@ -3,21 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
     <meta name="theme-color" content="#f43f5e">
-
     <title>Hmong WhatsApp</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
     <style>
         * {
             box-sizing: border-box;
@@ -140,8 +132,32 @@
             padding-bottom: max(12px, env(safe-area-inset-bottom));
         }
 
-        @media (max-width: 767px) {
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f43f5e;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
 
+        .profile-avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 767px) {
             body {
                 background: #fff;
             }
@@ -207,8 +223,7 @@
             }
 
             #call-screen-modal {
-                padding:
-                    max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+                padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
             }
 
             #local-video {
@@ -221,4124 +236,971 @@
     </style>
 </head>
 
-
 <body class="bg-slate-100 w-full h-[100dvh] overflow-hidden">
-
-    <!-- =========================================================
-         MAIN
-    ========================================================== -->
 
     <div id="main-container"
         class="bg-white w-full max-w-5xl h-[100dvh] md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border border-slate-200 flex overflow-hidden relative md:mx-auto md:my-[4vh]">
 
-
-        <!-- =====================================================
-             SIDEBAR
-        ====================================================== -->
-
+        <!-- SIDEBAR -->
         <div id="sidebar" class="w-full md:w-80 lg:w-96 bg-slate-50 border-r border-slate-200 flex flex-col h-full">
-
-            <!-- Profile -->
-
+            <!-- Profile Header with clickable avatar -->
             <div class="p-4 bg-rose-500 text-white flex justify-between items-center shadow-md shrink-0">
-
-                <div class="flex items-center gap-3 min-w-0">
-
-                    <div
-                        class="w-10 h-10 rounded-full bg-white text-rose-500 font-bold flex items-center justify-center text-lg shadow shrink-0">
-                        👤
-                    </div>
-
+                <div id="profile-header" class="flex items-center gap-3 min-w-0 cursor-pointer hover:opacity-80">
+                    <img id="my-avatar-img" src="" alt="avatar"
+                        class="w-10 h-10 rounded-full object-cover border-2 border-white bg-white shrink-0">
                     <div class="min-w-0">
-
-                        <h2 class="font-semibold text-sm">
-                            Hmoob WhatsApp
-                        </h2>
-
-                        <p id="my-phone-display" class="text-xs text-rose-100 font-mono truncate">
-                            08XXXXXXXX
-                        </p>
-
+                        <h2 class="font-semibold text-sm" id="my-profile-name-display">Hmoob WhatsApp</h2>
+                        <p id="my-phone-display" class="text-xs text-rose-100 font-mono truncate">08XXXXXXXX</p>
                     </div>
-
                 </div>
-
                 <button id="btn-logout"
-                    class="text-xs bg-rose-600 hover:bg-rose-700 px-3 py-2 rounded-lg transition shrink-0">
-                    Log Out = Tawm mus
-                </button>
-
+                    class="text-xs bg-rose-600 hover:bg-rose-700 px-3 py-2 rounded-lg transition shrink-0">Log Out =
+                    Tawm mus</button>
             </div>
 
-
             <!-- Add Friend -->
-
             <div class="p-4 bg-white border-b border-slate-200 space-y-2 shrink-0">
-
-                <label class="block text-xs font-semibold text-slate-500">
-                    👥 Nriav Phooj Ywg tshiab
-                </label>
-
+                <label class="block text-xs font-semibold text-slate-500">👥 Nriav Phooj Ywg tshiab</label>
                 <input type="tel" id="add-friend-phone" placeholder="เบอร์โทรศัพท์ 10 หลัก" maxlength="10"
                     inputmode="numeric"
                     class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-
                 <input type="text" id="add-friend-name" placeholder="ชื่อที่ต้องการบันทึก"
                     class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-
                 <button id="btn-add-friend"
-                    class="w-full bg-rose-500 hover:bg-rose-600 text-white text-sm py-2.5 rounded-xl font-medium transition">
-                    + บันทึกเพื่อน
-                </button>
-
+                    class="w-full bg-rose-500 hover:bg-rose-600 text-white text-sm py-2.5 rounded-xl font-medium transition">+
+                    บันทึกเพื่อน</button>
             </div>
 
-
-            <!-- Friends -->
-
+            <!-- Friends List -->
             <div id="friends-list" class="flex-1 overflow-y-auto p-2 space-y-1 no-scrollbar">
-
-                <p class="text-center text-xs text-slate-400 py-6">
-                    กำลังโหลดรายชื่อเพื่อน...
-                </p>
-
+                <p class="text-center text-xs text-slate-400 py-6">กำลังโหลดรายชื่อเพื่อน...</p>
             </div>
-
         </div>
 
-
-        <!-- =====================================================
-             CHAT
-        ====================================================== -->
-
+        <!-- CHAT WINDOW -->
         <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-slate-100">
-
             <!-- No Chat -->
-
             <div id="no-chat-selected" class="flex-1 flex flex-col justify-center items-center text-slate-400 p-6">
-
                 <div
                     class="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center text-4xl mb-4">
-                    💬
-                </div>
-
-                <p class="text-base font-medium text-slate-600 text-center">
-                    เลือกเพื่อนจากรายชื่อเพื่อเริ่มแชท
-                </p>
-
+                    💬</div>
+                <p class="text-base font-medium text-slate-600 text-center">เลือกเพื่อนจากรายชื่อเพื่อเริ่มแชท</p>
             </div>
-
 
             <!-- Active Chat -->
-
             <div id="active-chat" class="hidden flex-1 flex-col h-full min-h-0">
-
-
                 <!-- Header -->
-
                 <div
                     class="p-3 md:p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm shrink-0">
-
                     <div id="chat-header-clickable"
                         class="flex items-center gap-2 cursor-pointer hover:opacity-80 min-w-0">
-
-                        <button id="btn-back-sidebar" class="md:hidden text-slate-500 text-2xl font-bold px-1 shrink-0">
-                            ←
-                        </button>
-
+                        <button id="btn-back-sidebar"
+                            class="md:hidden text-slate-500 text-2xl font-bold px-1 shrink-0">←</button>
                         <div
                             class="w-10 h-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
-                            👤
-                        </div>
-
+                            👤</div>
                         <div class="min-w-0">
-
-                            <h3 id="chat-target-name" class="font-bold text-slate-800 text-sm truncate">
-                                ชื่อเพื่อน
-                            </h3>
-
-                            <p id="chat-target-phone" class="text-xs text-slate-400 font-mono truncate">
-                                08XXXXXXXX
-                            </p>
-
+                            <h3 id="chat-target-name" class="font-bold text-slate-800 text-sm truncate">ชื่อเพื่อน</h3>
+                            <p id="chat-target-phone" class="text-xs text-slate-400 font-mono truncate">08XXXXXXXX</p>
                         </div>
-
                     </div>
-
-
-                    <!-- Call -->
-
                     <div class="flex items-center gap-1 shrink-0">
-
                         <button id="btn-voice-call"
                             class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center"
-                            title="โทรเสียง">
-                            📞
-                        </button>
-
+                            title="โทรเสียง">📞</button>
                         <button id="btn-video-call"
                             class="w-10 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl flex items-center justify-center shadow-sm"
-                            title="วิดีโอคอล">
-                            📹
-                        </button>
-
+                            title="วิดีโอคอล">📹</button>
                     </div>
-
                 </div>
-
 
                 <!-- Messages -->
-
                 <div id="messages-container"
-                    class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-100 no-scrollbar min-h-0">
-                </div>
-
+                    class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-100 no-scrollbar min-h-0"></div>
 
                 <!-- Input -->
-
                 <div class="p-2 md:p-3 bg-white border-t border-slate-200 shrink-0 safe-bottom">
-
                     <form id="chat-form" class="flex items-center gap-1.5">
-
-                        <!-- Image -->
-
                         <button type="button" id="btn-image"
                             class="input-action w-11 h-11 shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl flex items-center justify-center transition"
-                            title="ส่งรูปภาพ">
-                            📷
-                        </button>
-
+                            title="ส่งรูปภาพ">📷</button>
                         <input type="file" id="image-input" accept="image/*" class="hidden">
-
-
-                        <!-- Voice -->
-
                         <button type="button" id="btn-record"
                             class="input-action w-11 h-11 shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl flex items-center justify-center transition"
-                            title="อัดเสียง">
-                            🎙️
-                        </button>
-
-
-                        <!-- Text -->
-
+                            title="อัดเสียง">🎙️</button>
                         <input type="text" id="message-input" placeholder="พิมพ์ข้อความ..." autocomplete="off"
                             class="flex-1 min-w-0 px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:bg-white outline-none transition">
-
-
-                        <!-- Send -->
-
                         <button type="submit" id="btn-send-msg"
-                            class="bg-rose-500 hover:bg-rose-600 text-white h-11 px-5 rounded-xl font-medium transition shadow-sm flex items-center justify-center text-sm shrink-0">
-                            ส่ง
-                        </button>
-
+                            class="bg-rose-500 hover:bg-rose-600 text-white h-11 px-5 rounded-xl font-medium transition shadow-sm flex items-center justify-center text-sm shrink-0">ส่ง</button>
                     </form>
-
-
-                    <!-- Upload status -->
-
-                    <div id="upload-status" class="hidden text-xs text-slate-400 mt-2 text-center upload-loading">
-                        ⏳ กำลังดำเนินการ...
-                    </div>
-
+                    <div id="upload-status" class="hidden text-xs text-slate-400 mt-2 text-center upload-loading">⏳
+                        กำลังดำเนินการ...</div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-         IMAGE VIEWER
-    ========================================================== -->
-
+    <!-- IMAGE VIEWER -->
     <div id="image-viewer" class="fixed inset-0 bg-black/95 hidden items-center justify-center p-3 z-[100]">
-
         <button id="close-image-viewer"
-            class="absolute top-4 right-4 w-11 h-11 bg-white/20 hover:bg-white/30 text-white rounded-full text-xl z-10">
-            ✕
-        </button>
-
+            class="absolute top-4 right-4 w-11 h-11 bg-white/20 hover:bg-white/30 text-white rounded-full text-xl z-10">✕</button>
         <img id="viewer-image" src="" alt="รูปภาพ" class="max-w-full max-h-full object-contain rounded-xl">
-
     </div>
 
-
-    <!-- =========================================================
-         INCOMING CALL
-    ========================================================== -->
-
+    <!-- INCOMING CALL -->
     <div id="incoming-call-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-[110]">
-
         <div class="bg-white rounded-3xl max-w-xs w-full p-6 text-center space-y-5 shadow-2xl">
-
             <div
                 class="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto border-4 border-rose-300 animate-pulse">
-                📞
-            </div>
-
+                📞</div>
             <div>
-
-                <h4 id="caller-name" class="font-bold text-slate-800 text-lg">
-                    เบอร์โทร...
-                </h4>
-
-                <p id="call-type-text" class="text-xs text-slate-500 mt-1">
-                    มีสายเรียกเข้า...
-                </p>
-
+                <h4 id="caller-name" class="font-bold text-slate-800 text-lg">เบอร์โทร...</h4>
+                <p id="call-type-text" class="text-xs text-slate-500 mt-1">มีสายเรียกเข้า...</p>
             </div>
-
             <div class="flex justify-center gap-4">
-
                 <button id="btn-reject-call"
-                    class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-full font-bold text-sm">
-                    🚫 ปฏิเสธ
-                </button>
-
+                    class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-full font-bold text-sm">🚫
+                    ปฏิเสธ</button>
                 <button id="btn-accept-call"
-                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-sm">
-                    📞 รับสาย
-                </button>
-
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-sm">📞
+                    รับสาย</button>
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-         CALL SCREEN
-    ========================================================== -->
-
+    <!-- CALL SCREEN -->
     <div id="call-screen-modal"
         class="fixed inset-0 bg-slate-950 hidden flex-col items-center justify-between p-6 z-[120]">
-
         <div class="text-center text-white mt-2">
-
-            <h3 id="call-screen-name" class="text-xl font-bold">
-                คู่สนทนา
-            </h3>
-
-            <p id="call-status" class="text-xs text-rose-300 mt-1">
-                กำลังเชื่อมต่อ...
-            </p>
-
+            <h3 id="call-screen-name" class="text-xl font-bold">คู่สนทนา</h3>
+            <p id="call-status" class="text-xs text-rose-300 mt-1">กำลังเชื่อมต่อ...</p>
         </div>
-
-
         <div
             class="relative w-full max-w-lg h-[55vh] bg-black rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
-
-            <div id="audio-call-icon" class="absolute inset-0 flex items-center justify-center text-7xl">
-                📞
-            </div>
-
-            <video id="remote-video" autoplay playsinline class="w-full h-full object-cover hidden">
-            </video>
-
+            <div id="audio-call-icon" class="absolute inset-0 flex items-center justify-center text-7xl">📞</div>
+            <video id="remote-video" autoplay playsinline class="w-full h-full object-cover hidden"></video>
             <video id="local-video" autoplay playsinline muted
-                class="absolute bottom-4 right-4 w-28 h-40 bg-slate-800 rounded-2xl border-2 border-white object-cover shadow-md hidden">
-            </video>
-
+                class="absolute bottom-4 right-4 w-28 h-40 bg-slate-800 rounded-2xl border-2 border-white object-cover shadow-md hidden"></video>
         </div>
-
-
         <div class="flex items-center gap-6 mb-4">
-
             <button id="btn-toggle-mic"
-                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center">
-                🎙️
-            </button>
-
+                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center">🎙️</button>
             <button id="btn-end-call"
-                class="w-16 h-16 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-2xl flex items-center justify-center shadow-lg">
-                📞
-            </button>
-
+                class="w-16 h-16 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-2xl flex items-center justify-center shadow-lg">📞</button>
             <button id="btn-toggle-cam"
-                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center">
-                📹
-            </button>
-
+                class="w-14 h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xl flex items-center justify-center">📹</button>
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-         RECORDING MODAL
-    ========================================================== -->
-
+    <!-- RECORDING MODAL -->
     <div id="recording-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-[130]">
-
         <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl">
-
             <div
                 class="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto recording-pulse">
-                🎙️
-            </div>
-
-            <h3 class="font-bold text-lg text-slate-800 mt-4">
-                กำลังอัดเสียง
-            </h3>
-
-            <p id="recording-time" class="text-rose-500 text-2xl font-mono font-bold mt-2">
-                00:00
-            </p>
-
-            <p class="text-xs text-slate-400 mt-2">
-                กดหยุดเพื่อส่งเสียง
-            </p>
-
+                🎙️</div>
+            <h3 class="font-bold text-lg text-slate-800 mt-4">กำลังอัดเสียง</h3>
+            <p id="recording-time" class="text-rose-500 text-2xl font-mono font-bold mt-2">00:00</p>
+            <p class="text-xs text-slate-400 mt-2">กดหยุดเพื่อส่งเสียง</p>
             <div class="flex gap-3 mt-5">
-
-                <button id="btn-cancel-record" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl">
-                    ยกเลิก
-                </button>
-
-                <button id="btn-stop-record" class="flex-1 bg-rose-500 text-white py-3 rounded-xl font-medium">
-                    ⏹ หยุดและส่ง
-                </button>
-
+                <button id="btn-cancel-record"
+                    class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl">ยกเลิก</button>
+                <button id="btn-stop-record" class="flex-1 bg-rose-500 text-white py-3 rounded-xl font-medium">⏹
+                    หยุดและส่ง</button>
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-         SETTINGS
-    ========================================================== -->
-
-    <div id="settings-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[90]">
-
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-5 shadow-2xl max-h-[90dvh] overflow-y-auto">
-
+    <!-- ========== PROFILE SETTINGS MODAL ========== -->
+    <div id="profile-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[140]">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
-
-                <h3 class="font-bold text-lg text-slate-800">
-                    ⚙️ ตั้งค่าการสนทนา
-                </h3>
-
-                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">
-                    ✕
-                </button>
-
+                <h3 class="font-bold text-lg text-slate-800">👤 โปรไฟล์ของฉัน</h3>
+                <button id="btn-close-profile" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-
-
-            <!-- Name -->
-
-            <div>
-
-                <label class="block text-xs font-semibold text-slate-600 mb-1">
-                    ชื่อบันทึกส่วนตัว
+            <!-- Avatar -->
+            <div class="flex flex-col items-center">
+                <img id="profile-avatar-preview" src="" alt="avatar" class="profile-avatar">
+                <label class="mt-2 text-xs text-rose-500 cursor-pointer hover:underline">เปลี่ยนรูปโปรไฟล์
+                    <input type="file" id="profile-avatar-input" accept="image/*" class="hidden">
                 </label>
+            </div>
+            <!-- Display Name -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อที่แสดง</label>
+                <input type="text" id="profile-name-input" placeholder="ชื่อของคุณ"
+                    class="w-full px-3 py-2.5 border rounded-xl outline-none">
+            </div>
+            <!-- Notification Sound Selector (5 sounds) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">🔔 เสียงแจ้งเตือนข้อความ</label>
+                <select id="profile-notification-sound"
+                    class="w-full px-3 py-2.5 border rounded-xl outline-none text-sm">
+                    <option value="https://actions.google.com/sounds/v1/messages/message_arrival.ogg">เสียง 1 - Arrival
+                    </option>
+                    <option value="https://actions.google.com/sounds/v1/messages/message_bubble.ogg">เสียง 2 - Bubble
+                    </option>
+                    <option value="https://actions.google.com/sounds/v1/messages/message_pop.ogg">เสียง 3 - Pop</option>
+                    <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">เสียง 4 - Short Beep
+                    </option>
+                    <option value="https://actions.google.com/sounds/v1/cartoon/boing.ogg">เสียง 5 - Boing</option>
+                </select>
+            </div>
+            <!-- Ringtone Sound Selector (5 sounds) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">📞 เสียงเรียกเข้า</label>
+                <select id="profile-ringtone-sound" class="w-full px-3 py-2.5 border rounded-xl outline-none text-sm">
+                    <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm.ogg">เสียงเรียก 1 -
+                        Digital</option>
+                    <option value="https://actions.google.com/sounds/v1/emergency/beeping_call.ogg">เสียงเรียก 2 -
+                        Beeping</option>
+                    <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">เสียงเรียก 3 - Short Beep
+                    </option>
+                    <option value="https://actions.google.com/sounds/v1/doors/door_bell.ogg">เสียงเรียก 4 - Door Bell
+                    </option>
+                    <option value="https://actions.google.com/sounds/v1/cartoon/clink.ogg">เสียงเรียก 5 - Clink</option>
+                </select>
+            </div>
+            <button id="btn-save-profile"
+                class="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl font-medium">💾
+                บันทึกโปรไฟล์</button>
+        </div>
+    </div>
 
+    <!-- SETTINGS MODAL (per chat) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[90]">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-5 shadow-2xl max-h-[90dvh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">⚙️ ตั้งค่าการสนทนา</h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อบันทึกส่วนตัว</label>
                 <input type="text" id="setting-edit-name" placeholder="ตั้งชื่อเล่น..."
                     class="w-full px-3 py-2.5 border rounded-xl outline-none">
-
             </div>
-
-
-            <!-- Theme -->
-
             <div>
-
-                <label class="block text-xs font-semibold text-slate-600 mb-2">
-                    🎨 สีแชท
-                </label>
-
+                <label class="block text-xs font-semibold text-slate-600 mb-2">🎨 สีแชท</label>
                 <div class="grid grid-cols-4 gap-2">
-
-                    <button data-theme="rose" class="theme-btn p-3 rounded-xl bg-rose-500 text-white text-xs">
-                        ชมพู
-                    </button>
-
-                    <button data-theme="sky" class="theme-btn p-3 rounded-xl bg-sky-500 text-white text-xs">
-                        ฟ้า
-                    </button>
-
-                    <button data-theme="emerald" class="theme-btn p-3 rounded-xl bg-emerald-500 text-white text-xs">
-                        เขียว
-                    </button>
-
-                    <button data-theme="purple" class="theme-btn p-3 rounded-xl bg-purple-500 text-white text-xs">
-                        ม่วง
-                    </button>
-
+                    <button data-theme="rose"
+                        class="theme-btn p-3 rounded-xl bg-rose-500 text-white text-xs">ชมพู</button>
+                    <button data-theme="sky" class="theme-btn p-3 rounded-xl bg-sky-500 text-white text-xs">ฟ้า</button>
+                    <button data-theme="emerald"
+                        class="theme-btn p-3 rounded-xl bg-emerald-500 text-white text-xs">เขียว</button>
+                    <button data-theme="purple"
+                        class="theme-btn p-3 rounded-xl bg-purple-500 text-white text-xs">ม่วง</button>
                 </div>
-
             </div>
-
-            <!-- Theme -->
             <div>
-                ... (โค้ดเลือกสีธีมเดิม) ...
+                <label class="block text-xs font-semibold text-slate-600 mb-1">⏱️ ลบข้อความอัตโนมัติ</label>
+                <select id="setting-auto-delete" class="w-full px-3 py-2.5 border rounded-xl outline-none">
+                    <option value="off">ปิด</option>
+                    <option value="1min">1 นาที</option>
+                    <option value="1hour">1 ชั่วโมง</option>
+                    <option value="24hours">24 ชั่วโมง</option>
+                </select>
             </div>
-
-            <!-- นำโค้ดตั้งค่าเสียงมาวางตรงนี้ครับ 👇 -->
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-2">
-                    🔔 เสียงแจ้งเตือนข้อความ
-                </label>
-                <div class="flex gap-2">
-                    <select id="setting-chat-sound" class="flex-1 px-3 py-2.5 border rounded-xl outline-none text-xs">
-                        <option value="https://actions.google.com/sounds/v1/messages/message_arrival.ogg">เสียง 1 -
-                            Message Arrival</option>
-                        <option value="https://actions.google.com/sounds/v1/messages/message_bubble.ogg">เสียง 2 -
-                            Message Bubble</option>
-                        <option value="https://actions.google.com/sounds/v1/messages/message_pop.ogg">เสียง 3 - Message
-                            Pop</option>
-                        <option value="https://actions.google.com/sounds/v1/messages/bell_notification.ogg">เสียง 4 -
-                            Bell Notification</option>
-                        <option value="https://actions.google.com/sounds/v1/messages/soft_chime.ogg">เสียง 5 - Soft
-                            Chime</option>
-                        <option value="https://actions.google.com/sounds/v1/cartoon/pop.ogg">เสียง 6 - Pop</option>
-                        <option value="https://actions.google.com/sounds/v1/cartoon/clink.ogg">เสียง 7 - Clink</option>
-                        <option value="https://actions.google.com/sounds/v1/cartoon/boing.ogg">เสียง 8 - Boing</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">เสียง 9 - Short Beep
-                        </option>
-                        <option value="https://actions.google.com/sounds/v1/doors/door_bell.ogg">เสียง 10 - Door Bell
-                        </option>
-                    </select>
-                    <button type="button" id="btn-test-sound"
-                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-medium border border-slate-200">
-                        🔊 ทดลองฟัง
-                    </button>
-                </div>
+            <button id="btn-save-settings"
+                class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-medium">💾
+                บันทึกการตั้งค่า</button>
+            <div class="border-t pt-4 space-y-2">
+                <button id="btn-clear-all-messages"
+                    class="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-3 rounded-xl text-xs font-semibold">🗑️
+                    ลบประวัติข้อความทั้งหมด</button>
+                <button id="btn-block-friend"
+                    class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 py-3 rounded-xl text-xs font-semibold">🚫
+                    บล็อกและลบเพื่อน</button>
             </div>
-            <!-- สิ้นสุดโค้ดตั้งค่าเสียง 👆 -->
-
-            <!-- Auto Delete -->
-            <div>
-
-                <!-- Auto Delete -->
-
-                <div>
-
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">
-                        ⏱️ ลบข้อความอัตโนมัติ
-                    </label>
-
-                    <select id="setting-auto-delete" class="w-full px-3 py-2.5 border rounded-xl outline-none">
-
-                        <option value="off">
-                            ปิด
-                        </option>
-
-                        <option value="1min">
-                            1 นาที
-                        </option>
-
-                        <option value="1hour">
-                            1 ชั่วโมง
-                        </option>
-
-                        <option value="24hours">
-                            24 ชั่วโมง
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <button id="btn-save-settings"
-                    class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-medium">
-                    💾 บันทึกการตั้งค่า
-                </button>
-
-
-                <div class="border-t pt-4 space-y-2">
-
-                    <button id="btn-clear-all-messages"
-                        class="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-3 rounded-xl text-xs font-semibold">
-                        🗑️ ลบประวัติข้อความทั้งหมด
-                    </button>
-
-                    <button id="btn-block-friend"
-                        class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 py-3 rounded-xl text-xs font-semibold">
-                        🚫 บล็อกและลบเพื่อน
-                    </button>
-
-                </div>
-
-            </div>
-
         </div>
+    </div>
 
+    <!-- AUDIO ELEMENTS -->
+    <audio id="ringtone-incoming" loop></audio>
+    <audio id="ringtone-outgoing" loop></audio>
+    <audio id="chat-notification-sound"></audio>
 
-        <!-- Sounds -->
+    <!-- ========================================================= FIREBASE ========================================================= -->
+    <script type="module">
+        import {getMessaging, getToken} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {getDatabase, ref, set, push, onValue, get, remove, update} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-        <!-- Sounds -->
-        <audio id="ringtone-incoming" loop
-            src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm.ogg"></audio>
-        <audio id="ringtone-outgoing" loop
-            src="https://actions.google.com/sounds/v1/emergency/beeping_call.ogg"></audio>
-        <!-- เพิ่มบรรทัดนี้เข้าไปครับ 👇 -->
-        <audio id="chat-notification-sound"></audio>
+        // ========================================================= FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyBriOzZumxBXSpwL6Kavvyd089UiPzTQfw",
+            authDomain: "hukhujai-app.firebaseapp.com",
+            databaseURL: "https://hukhujai-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "hukhujai-app",
+            storageBucket: "hukhujai-app.firebasestorage.app",
+            messagingSenderId: "536937955261",
+            appId: "1:536937955261:web:4a35c99a854a1e58c89cd4",
+            measurementId: "G-EXTZ6V7CBH"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        <!-- =========================================================         FIREBASE    ========================================================== -->
+        // ========================================================= LOGIN
+        const myPhone = localStorage.getItem('userPhone');
+        if (!myPhone) {window.location.href = 'index.html';}
+        document.getElementById('my-phone-display').textContent = myPhone;
 
+        // ========================================================= ELEMENTS
+        const friendsList = document.getElementById('friends-list');
+        const addFriendPhone = document.getElementById('add-friend-phone');
+        const addFriendName = document.getElementById('add-friend-name');
+        const btnAddFriend = document.getElementById('btn-add-friend');
+        const btnLogout = document.getElementById('btn-logout');
+        const sidebar = document.getElementById('sidebar');
+        const chatWindow = document.getElementById('chat-window');
+        const noChatSelected = document.getElementById('no-chat-selected');
+        const activeChat = document.getElementById('active-chat');
+        const chatTargetName = document.getElementById('chat-target-name');
+        const chatTargetPhone = document.getElementById('chat-target-phone');
+        const messagesContainer = document.getElementById('messages-container');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const btnSendMsg = document.getElementById('btn-send-msg');
+        const btnBackSidebar = document.getElementById('btn-back-sidebar');
+        const btnImage = document.getElementById('btn-image');
+        const imageInput = document.getElementById('image-input');
+        const uploadStatus = document.getElementById('upload-status');
+        const btnRecord = document.getElementById('btn-record');
+        const recordingModal = document.getElementById('recording-modal');
+        const recordingTime = document.getElementById('recording-time');
+        const btnStopRecord = document.getElementById('btn-stop-record');
+        const btnCancelRecord = document.getElementById('btn-cancel-record');
+        const imageViewer = document.getElementById('image-viewer');
+        const viewerImage = document.getElementById('viewer-image');
+        const closeImageViewer = document.getElementById('close-image-viewer');
+        const btnVoiceCall = document.getElementById('btn-voice-call');
+        const btnVideoCall = document.getElementById('btn-video-call');
+        const incomingCallModal = document.getElementById('incoming-call-modal');
+        const callerName = document.getElementById('caller-name');
+        const callTypeText = document.getElementById('call-type-text');
+        const btnAcceptCall = document.getElementById('btn-accept-call');
+        const btnRejectCall = document.getElementById('btn-reject-call');
+        const callScreenModal = document.getElementById('call-screen-modal');
+        const callScreenName = document.getElementById('call-screen-name');
+        const callStatus = document.getElementById('call-status');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const audioCallIcon = document.getElementById('audio-call-icon');
+        const btnToggleMic = document.getElementById('btn-toggle-mic');
+        const btnToggleCam = document.getElementById('btn-toggle-cam');
+        const btnEndCall = document.getElementById('btn-end-call');
+        const ringtoneIncoming = document.getElementById('ringtone-incoming');
+        const ringtoneOutgoing = document.getElementById('ringtone-outgoing');
+        const chatNotificationSound = document.getElementById('chat-notification-sound');
 
-        <!-- =========================================================
-         FIREBASE
-    ========================================================== -->
+        // PROFILE ELEMENTS
+        const profileModal = document.getElementById('profile-modal');
+        const btnCloseProfile = document.getElementById('btn-close-profile');
+        const profileAvatarInput = document.getElementById('profile-avatar-input');
+        const profileAvatarPreview = document.getElementById('profile-avatar-preview');
+        const profileNameInput = document.getElementById('profile-name-input');
+        const profileNotificationSound = document.getElementById('profile-notification-sound');
+        const profileRingtoneSound = document.getElementById('profile-ringtone-sound');
+        const btnSaveProfile = document.getElementById('btn-save-profile');
+        const myAvatarImg = document.getElementById('my-avatar-img');
+        const myProfileNameDisplay = document.getElementById('my-profile-name-display');
+        const profileHeader = document.getElementById('profile-header');
 
-        <script type="module">
+        // ========================================================= VARIABLES
+        let currentActiveFriend = null;
+        let currentMessagesListener = null;
+        let selectedTheme = 'rose';
+        let currentThemeClass = 'bg-rose-500';
+        let peer = null;
+        let localStream = null;
+        let currentCall = null;
+        let pendingCallData = null;
+        let micEnabled = true;
+        let camEnabled = true;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingTimer = null;
+        let recordingSeconds = 0;
+        const themes = {rose: 'bg-rose-500', sky: 'bg-sky-500', emerald: 'bg-emerald-500', purple: 'bg-purple-500'};
 
-            import {getMessaging, getToken} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+        // ========================================================= PROFILE FUNCTIONS
+        async function loadProfile() {
+            const snap = await get(ref(db, `users/${myPhone}/profile`));
+            if (snap.exists()) {
+                const data = snap.val();
+                if (data.avatar) profileAvatarPreview.src = data.avatar;
+                if (data.displayName) {profileNameInput.value = data.displayName; myProfileNameDisplay.textContent = data.displayName;}
+                if (data.notificationSound) profileNotificationSound.value = data.notificationSound;
+                if (data.ringtoneSound) profileRingtoneSound.value = data.ringtoneSound;
+                // update avatar in sidebar
+                if (data.avatar) myAvatarImg.src = data.avatar;
+            } else {
+                // default
+                profileNameInput.value = 'Hmoob WhatsApp';
+                myProfileNameDisplay.textContent = 'Hmoob WhatsApp';
+                profileNotificationSound.value = 'https://actions.google.com/sounds/v1/messages/message_arrival.ogg';
+                profileRingtoneSound.value = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm.ogg';
+            }
+            if (!profileAvatarPreview.src || profileAvatarPreview.src === '') {
+                profileAvatarPreview.src = '';
+                profileAvatarPreview.alt = '👤';
+            }
+            if (!myAvatarImg.src || myAvatarImg.src === '') {
+                myAvatarImg.src = '';
+                myAvatarImg.alt = '👤';
+            }
+        }
+        loadProfile();
 
-            import {
-                initializeApp
-            } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        // Save Profile
+        btnSaveProfile.addEventListener('click', async () => {
+            const displayName = profileNameInput.value.trim() || 'Hmoob WhatsApp';
+            const notiSound = profileNotificationSound.value;
+            const ringSound = profileRingtoneSound.value;
+            const avatar = profileAvatarPreview.src || '';
+            await set(ref(db, `users/${myPhone}/profile`), {
+                displayName,
+                notificationSound: notiSound,
+                ringtoneSound: ringSound,
+                avatar: avatar
+            });
+            myProfileNameDisplay.textContent = displayName;
+            if (avatar) myAvatarImg.src = avatar;
+            // update chat header if open
+            if (currentActiveFriend) {
+                const friendSnap = await get(ref(db, `users/${myPhone}/contacts/${currentActiveFriend}`));
+                if (friendSnap.exists()) {
+                    const friendData = friendSnap.val();
+                    chatTargetName.textContent = friendData.savedName || currentActiveFriend;
+                }
+            }
+            alert('บันทึกโปรไฟล์เรียบร้อย');
+            profileModal.classList.add('hidden');
+            profileModal.classList.remove('flex');
+        });
 
-            import {
-                getDatabase,
-                ref,
-                set,
-                push,
-                onValue,
-                get,
-                remove,
-                update
-            } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        // Open profile modal on click avatar/name
+        profileHeader.addEventListener('click', () => {
+            profileModal.classList.remove('hidden');
+            profileModal.classList.add('flex');
+            loadProfile();
+        });
+        btnCloseProfile.addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+            profileModal.classList.remove('flex');
+        });
 
-
-            // =========================================================
-            // FIREBASE CONFIG
-            // =========================================================
-
-            const firebaseConfig = {
-
-                apiKey: "AIzaSyBriOzZumxBXSpwL6Kavvyd089UiPzTQfw",
-
-                authDomain: "hukhujai-app.firebaseapp.com",
-
-                databaseURL:
-                    "https://hukhujai-app-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-                projectId: "hukhujai-app",
-
-                storageBucket:
-                    "hukhujai-app.firebasestorage.app",
-
-                messagingSenderId:
-                    "536937955261",
-
-                appId:
-                    "1:536937955261:web:4a35c99a854a1e58c89cd4",
-
-                measurementId:
-                    "G-EXTZ6V7CBH"
+        // Avatar upload
+        profileAvatarInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                profileAvatarPreview.src = ev.target.result;
             };
-
-
-            const app =
-                initializeApp(firebaseConfig);
-
-            const db =
-                getDatabase(app);
-
-
-            // =========================================================
-            // LOGIN
-            // =========================================================
-
-            const myPhone =
-                localStorage.getItem('userPhone');
-
-            if (!myPhone) {
-
-                window.location.href =
-                    'index.html';
-
-            }
-
-
-            document.getElementById(
-                'my-phone-display'
-            ).textContent =
-                myPhone;
-
-
-            // =========================================================
-            // ELEMENTS
-            // =========================================================
-
-            const friendsList =
-                document.getElementById('friends-list');
-
-            const addFriendPhone =
-                document.getElementById('add-friend-phone');
-
-            const addFriendName =
-                document.getElementById('add-friend-name');
-
-            const btnAddFriend =
-                document.getElementById('btn-add-friend');
-
-            const btnLogout =
-                document.getElementById('btn-logout');
-
-            const sidebar =
-                document.getElementById('sidebar');
-
-            const chatWindow =
-                document.getElementById('chat-window');
-
-            const noChatSelected =
-                document.getElementById('no-chat-selected');
-
-            const activeChat =
-                document.getElementById('active-chat');
-
-            const chatTargetName =
-                document.getElementById('chat-target-name');
-
-            const chatTargetPhone =
-                document.getElementById('chat-target-phone');
-
-            const messagesContainer =
-                document.getElementById('messages-container');
-
-            const chatForm =
-                document.getElementById('chat-form');
-
-            const messageInput =
-                document.getElementById('message-input');
-
-            const btnSendMsg =
-                document.getElementById('btn-send-msg');
-
-            const btnBackSidebar =
-                document.getElementById('btn-back-sidebar');
-
-
-            // Image
-
-            const btnImage =
-                document.getElementById('btn-image');
-
-            const imageInput =
-                document.getElementById('image-input');
-
-            const uploadStatus =
-                document.getElementById('upload-status');
-
-
-            // Voice
-
-            const btnRecord =
-                document.getElementById('btn-record');
-
-            const recordingModal =
-                document.getElementById('recording-modal');
-
-            const recordingTime =
-                document.getElementById('recording-time');
-
-            const btnStopRecord =
-                document.getElementById('btn-stop-record');
-
-            const btnCancelRecord =
-                document.getElementById('btn-cancel-record');
-
-
-            // Viewer
-
-            const imageViewer =
-                document.getElementById('image-viewer');
-
-            const viewerImage =
-                document.getElementById('viewer-image');
-
-            const closeImageViewer =
-                document.getElementById('close-image-viewer');
-
-
-            // Calls
-
-            const btnVoiceCall =
-                document.getElementById('btn-voice-call');
-
-            const btnVideoCall =
-                document.getElementById('btn-video-call');
-
-            const incomingCallModal =
-                document.getElementById('incoming-call-modal');
-
-            const callerName =
-                document.getElementById('caller-name');
-
-            const callTypeText =
-                document.getElementById('call-type-text');
-
-            const btnAcceptCall =
-                document.getElementById('btn-accept-call');
-
-            const btnRejectCall =
-                document.getElementById('btn-reject-call');
-
-            const callScreenModal =
-                document.getElementById('call-screen-modal');
-
-            const callScreenName =
-                document.getElementById('call-screen-name');
-
-            const callStatus =
-                document.getElementById('call-status');
-
-            const localVideo =
-                document.getElementById('local-video');
-
-            const remoteVideo =
-                document.getElementById('remote-video');
-
-            const audioCallIcon =
-                document.getElementById('audio-call-icon');
-
-            const btnToggleMic =
-                document.getElementById('btn-toggle-mic');
-
-            const btnToggleCam =
-                document.getElementById('btn-toggle-cam');
-
-            const btnEndCall =
-                document.getElementById('btn-end-call');
-
-            const ringtoneIncoming =
-                document.getElementById('ringtone-incoming');
-
-            const ringtoneOutgoing =
-                document.getElementById('ringtone-outgoing');
-
-
-            // =========================================================
-            // VARIABLES
-            // =========================================================
-
-            let currentActiveFriend =
-                null;
-
-            let currentMessagesListener =
-                null;
-
-            let selectedTheme =
-                'rose';
-
-            let currentThemeClass =
-                'bg-rose-500';
-
-
-            // =========================================================
-            // CALL VARIABLES
-            // =========================================================
-
-            let peer =
-                null;
-
-            let localStream =
-                null;
-
-            let currentCall =
-                null;
-
-            let pendingCallData =
-                null;
-
-            let micEnabled =
-                true;
-
-            let camEnabled =
-                true;
-
-
-            // =========================================================
-            // RECORD VARIABLES
-            // =========================================================
-
-            let mediaRecorder =
-                null;
-
-            let recordedChunks =
-                [];
-
-            let recordingTimer =
-                null;
-
-            let recordingSeconds =
-                0;
-
-
-            // =========================================================
-            // THEMES
-            // =========================================================
-
-            const themes = {
-
-                rose: 'bg-rose-500',
-
-                sky: 'bg-sky-500',
-
-                emerald: 'bg-emerald-500',
-
-                purple: 'bg-purple-500'
-
-            };
-
-
-            // =========================================================
-            // LOGOUT
-            // =========================================================
-
-            btnLogout.addEventListener(
-                'click',
-                () => {
-
-                    if (currentCall) {
-
-                        try {
-                            currentCall.close();
-                        } catch (e) { }
-
-                    }
-
-                    localStorage.removeItem(
-                        'userPhone'
-                    );
-
-                    window.location.href =
-                        'index.html';
-
-                }
-            );
-
-
-            // =========================================================
-            // CHAT ROOM
-            // =========================================================
-
-            function getChatRoomId(
-                p1,
-                p2
-            ) {
-
-                return p1 < p2
-                    ? `chat_${p1}_${p2}`
-                    : `chat_${p2}_${p1}`;
-
-            }
-
-
-            // =========================================================
-            // ESCAPE HTML
-            // =========================================================
-
-            function escapeHTML(text) {
-
-                const div =
-                    document.createElement('div');
-
-                div.textContent =
-                    text || '';
-
-                return div.innerHTML;
-
-            }
-
-
-            // =========================================================
-            // DATE
-            // =========================================================
-
-            function formatDateTime(timestamp) {
-
-                if (!timestamp)
-                    return '';
-
-                const d =
-                    new Date(timestamp);
-
-                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`;
-
-            }
-
-
-            // =========================================================
-            // YOUTUBE
-            // =========================================================
-
-            function getYouTubeId(url) {
-
-                try {
-
-                    const parsed =
-                        new URL(url);
-
-                    let id = null;
-
-
-                    if (
-                        parsed.hostname.includes(
-                            'youtube.com'
-                        )
-                    ) {
-
-                        id =
-                            parsed.searchParams.get(
-                                'v'
-                            );
-
-                        if (!id &&
-                            parsed.pathname.startsWith('/shorts/')
-                        ) {
-
-                            id =
-                                parsed.pathname
-                                    .split('/')[2];
-
-                        }
-
-                        if (!id &&
-                            parsed.pathname.startsWith('/embed/')
-                        ) {
-
-                            id =
-                                parsed.pathname
-                                    .split('/')[2];
-
-                        }
-
-                    }
-
-
-                    if (
-                        parsed.hostname.includes(
-                            'youtu.be'
-                        )
-                    ) {
-
-                        id =
-                            parsed.pathname
-                                .substring(1)
-                                .split('/')[0];
-
-                    }
-
-
-                    return id;
-
-                } catch (e) {
-
-                    return null;
-
-                }
-
-            }
-
-
-            // =========================================================
-            // MESSAGE TEXT
-            // =========================================================
-
-            function convertMessageText(text) {
-
-                if (!text)
-                    return '';
-
-                const safeText =
-                    escapeHTML(text);
-
-
-                const parts =
-                    safeText.split(
-                        /(https?:\/\/[^\s<]+)/g
-                    );
-
-
-                return parts.map(part => {
-
-                    if (
-                        !/^https?:\/\//i.test(part)
-                    ) {
-
-                        return part.replace(
-                            /\n/g,
-                            '<br>'
-                        );
-
-                    }
-
-
-                    const youtubeId =
-                        getYouTubeId(part);
-
-
-                    if (youtubeId) {
-
-                        return `
-
-                        <div class="youtube-box mt-2">
-
-                            <iframe
-                                src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}"
-                                title="YouTube"
-                                loading="lazy"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                allowfullscreen>
-                            </iframe>
-
-                        </div>
-
-                    `;
-
-                    }
-
-
-                    return `
-
-                    <a
-                        href="${part}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-blue-500 underline break-all">
-
-                        ${part}
-
-                    </a>
-
-                `;
-
-                }).join('');
-
-            }
-
-
-            // =========================================================
-            // IMAGE COMPRESS
-            // =========================================================
-
-            const MAX_IMAGE_SIZE =
-                500 * 1024;
-
-
-            function compressImage(file) {
-
-                return new Promise(
-                    (resolve, reject) => {
-
-                        const reader =
-                            new FileReader();
-
-
-                        reader.onload =
-                            function (event) {
-
-                                const img =
-                                    new Image();
-
-
-                                img.onload =
-                                    function () {
-
-                                        let width =
-                                            img.width;
-
-                                        let height =
-                                            img.height;
-
-
-                                        const MAX_WIDTH =
-                                            1200;
-
-                                        const MAX_HEIGHT =
-                                            1200;
-
-
-                                        if (
-                                            width >
-                                            MAX_WIDTH
-                                        ) {
-
-                                            height =
-                                                height *
-                                                (MAX_WIDTH / width);
-
-                                            width =
-                                                MAX_WIDTH;
-
-                                        }
-
-
-                                        if (
-                                            height >
-                                            MAX_HEIGHT
-                                        ) {
-
-                                            width =
-                                                width *
-                                                (MAX_HEIGHT / height);
-
-                                            height =
-                                                MAX_HEIGHT;
-
-                                        }
-
-
-                                        const canvas =
-                                            document.createElement(
-                                                'canvas'
-                                            );
-
-
-                                        canvas.width =
-                                            Math.round(
-                                                width
-                                            );
-
-                                        canvas.height =
-                                            Math.round(
-                                                height
-                                            );
-
-
-                                        const ctx =
-                                            canvas.getContext(
-                                                '2d'
-                                            );
-
-
-                                        ctx.drawImage(
-                                            img,
-                                            0,
-                                            0,
-                                            canvas.width,
-                                            canvas.height
-                                        );
-
-
-                                        let quality =
-                                            0.75;
-
-
-                                        let dataUrl =
-                                            canvas.toDataURL(
-                                                'image/jpeg',
-                                                quality
-                                            );
-
-
-                                        while (
-                                            dataUrl.length >
-                                            MAX_IMAGE_SIZE &&
-                                            quality >
-                                            0.30
-                                        ) {
-
-                                            quality -=
-                                                0.05;
-
-                                            dataUrl =
-                                                canvas.toDataURL(
-                                                    'image/jpeg',
-                                                    quality
-                                                );
-
-                                        }
-
-
-                                        if (
-                                            dataUrl.length >
-                                            MAX_IMAGE_SIZE
-                                        ) {
-
-                                            reject(
-                                                new Error(
-                                                    'รูปภาพใหญ่เกิน 500KB'
-                                                )
-                                            );
-
-                                            return;
-
-                                        }
-
-
-                                        resolve(
-                                            dataUrl
-                                        );
-
-                                    };
-
-
-                                img.onerror =
-                                    () =>
-                                        reject(
-                                            new Error(
-                                                'อ่านรูปภาพไม่ได้'
-                                            )
-                                        );
-
-
-                                img.src =
-                                    event.target.result;
-
-                            };
-
-
-                        reader.onerror =
-                            () =>
-                                reject(
-                                    new Error(
-                                        'อ่านไฟล์ไม่ได้'
-                                    )
-                                );
-
-
-                        reader.readAsDataURL(
-                            file
-                        );
-
-                    }
-                );
-
-            }
-
-
-            // =========================================================
-            // IMAGE BUTTON
-            // =========================================================
-
-            btnImage.addEventListener(
-                'click',
-                () => {
-
-                    if (!currentActiveFriend) {
-
-                        alert(
-                            'กรุณาเลือกเพื่อนก่อน'
-                        );
-
-                        return;
-
-                    }
-
-                    imageInput.click();
-
-                }
-            );
-
-
-            // =========================================================
-            // SEND IMAGE
-            // =========================================================
-
-            imageInput.addEventListener(
-                'change',
-                async () => {
-
-                    const file =
-                        imageInput.files[0];
-
-                    if (!file)
-                        return;
-
-
+            reader.readAsDataURL(file);
+        });
+
+        // ========================================================= NOTIFICATION SOUND (use profile setting)
+        async function playNotificationSound() {
+            try {
+                const snap = await get(ref(db, `users/${myPhone}/profile/notificationSound`));
+                let url = snap.val() || 'https://actions.google.com/sounds/v1/messages/message_arrival.ogg';
+                chatNotificationSound.src = url;
+                chatNotificationSound.currentTime = 0;
+                await chatNotificationSound.play();
+            } catch (e) {console.log('sound error', e);}
+        }
+
+        // Override ringtone with profile setting
+        async function getRingtoneUrl() {
+            const snap = await get(ref(db, `users/${myPhone}/profile/ringtoneSound`));
+            return snap.val() || 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm.ogg';
+        }
+        async function getNotificationUrl() {
+            const snap = await get(ref(db, `users/${myPhone}/profile/notificationSound`));
+            return snap.val() || 'https://actions.google.com/sounds/v1/messages/message_arrival.ogg';
+        }
+
+        // ========================================================= LOGOUT
+        btnLogout.addEventListener('click', () => {
+            if (currentCall) {try {currentCall.close();} catch (e) { } }
+            localStorage.removeItem('userPhone');
+            window.location.href = 'index.html';
+        });
+
+        // ========================================================= CHAT ROOM
+        function getChatRoomId(p1, p2) {return p1 < p2 ? `chat_${p1}_${p2}` : `chat_${p2}_${p1}`;}
+        function escapeHTML(text) {const div = document.createElement('div'); div.textContent = text || ''; return div.innerHTML;}
+        function formatDateTime(timestamp) {if (!timestamp) return ''; const d = new Date(timestamp); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`;}
+        function getYouTubeId(url) {try {const parsed = new URL(url); let id = null; if (parsed.hostname.includes('youtube.com')) {id = parsed.searchParams.get('v'); if (!id && parsed.pathname.startsWith('/shorts/')) {id = parsed.pathname.split('/')[2];} if (!id && parsed.pathname.startsWith('/embed/')) {id = parsed.pathname.split('/')[2];} } if (parsed.hostname.includes('youtu.be')) {id = parsed.pathname.substring(1).split('/')[0];} return id;} catch (e) {return null;} }
+        function convertMessageText(text) {if (!text) return ''; const safeText = escapeHTML(text); const parts = safeText.split(/(https?:\/\/[^\s<]+)/g); return parts.map(part => {if (!/^https?:\/\//i.test(part)) {return part.replace(/\n/g, '<br>');} const youtubeId = getYouTubeId(part); if (youtubeId) {return `<div class="youtube-box mt-2"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}" title="YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;} return `<a href="${part}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline break-all">${part}</a>`;}).join('');}
+
+        // IMAGE COMPRESS
+        const MAX_IMAGE_SIZE = 500 * 1024;
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = function () {
+                        let width = img.width, height = img.height;
+                        const MAX_WIDTH = 1200, MAX_HEIGHT = 1200;
+                        if (width > MAX_WIDTH) {height = height * (MAX_WIDTH / width); width = MAX_WIDTH;}
+                        if (height > MAX_HEIGHT) {width = width * (MAX_HEIGHT / height); height = MAX_HEIGHT;}
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(width); canvas.height = Math.round(height);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        let quality = 0.75;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > MAX_IMAGE_SIZE && quality > 0.30) {quality -= 0.05; dataUrl = canvas.toDataURL('image/jpeg', quality);}
+                        if (dataUrl.length > MAX_IMAGE_SIZE) {reject(new Error('รูปภาพใหญ่เกิน 500KB')); return;}
+                        resolve(dataUrl);
+                    };
+                    img.onerror = () => reject(new Error('อ่านรูปภาพไม่ได้'));
+                    img.src = event.target.result;
+                };
+                reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // IMAGE BUTTON
+        btnImage.addEventListener('click', () => {if (!currentActiveFriend) {alert('กรุณาเลือกเพื่อนก่อน'); return;} imageInput.click();});
+        imageInput.addEventListener('change', async () => {
+            const file = imageInput.files[0]; if (!file) return;
+            try {
+                btnImage.disabled = true;
+                uploadStatus.textContent = '⏳ กำลังบีบอัดรูปภาพ...';
+                uploadStatus.classList.remove('hidden');
+                const imageBase64 = await compressImage(file);
+                uploadStatus.textContent = '📤 กำลังส่งรูปภาพ...';
+                const roomId = getChatRoomId(myPhone, currentActiveFriend);
+                await set(push(ref(db, `chats/${roomId}/messages`)), {sender: myPhone, type: 'image', image: imageBase64, timestamp: Date.now()});
+                uploadStatus.textContent = '✅ ส่งรูปสำเร็จ';
+                setTimeout(() => {uploadStatus.classList.add('hidden');}, 800);
+            } catch (error) {console.error(error); alert('ส่งรูปไม่ได้: ' + error.message); uploadStatus.classList.add('hidden');} finally {btnImage.disabled = false; imageInput.value = '';}
+        });
+
+        // IMAGE VIEWER
+        function openImageViewer(src) {viewerImage.src = src; imageViewer.classList.remove('hidden'); imageViewer.classList.add('flex');}
+        function closeViewer() {imageViewer.classList.add('hidden'); imageViewer.classList.remove('flex'); viewerImage.src = '';}
+        closeImageViewer.addEventListener('click', closeViewer);
+        imageViewer.addEventListener('click', e => {if (e.target === imageViewer) closeViewer();});
+
+        // AUDIO RECORDING
+        function blobToDataURL(blob) {return new Promise((resolve, reject) => {const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob);});}
+        function startRecordingTimer() {recordingSeconds = 0; recordingTime.textContent = '00:00'; recordingTimer = setInterval(() => {recordingSeconds++; const min = Math.floor(recordingSeconds / 60); const sec = recordingSeconds % 60; recordingTime.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; if (recordingSeconds >= 120) {stopRecording();} }, 1000);}
+        function stopRecordingTimer() {if (recordingTimer) {clearInterval(recordingTimer); recordingTimer = null;} }
+
+        btnRecord.addEventListener('click', async () => {
+            if (!currentActiveFriend) {alert('กรุณาเลือกเพื่อนก่อน'); return;}
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                recordedChunks = [];
+                let mimeType = 'audio/webm';
+                if (!MediaRecorder.isTypeSupported('audio/webm')) {mimeType = '';}
+                mediaRecorder = mimeType ? new MediaRecorder(stream, {mimeType}) : new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = event => {if (event.data.size > 0) recordedChunks.push(event.data);};
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    const blob = new Blob(recordedChunks, {type: mediaRecorder.mimeType || 'audio/webm'});
+                    if (blob.size > 700 * 1024) {alert('ไฟล์เสียงใหญ่เกินไป กรุณาอัดเสียงสั้นลง'); return;}
                     try {
+                        uploadStatus.textContent = '📤 กำลังส่งเสียง...';
+                        uploadStatus.classList.remove('hidden');
+                        const audioBase64 = await blobToDataURL(blob);
+                        const roomId = getChatRoomId(myPhone, currentActiveFriend);
+                        await set(push(ref(db, `chats/${roomId}/messages`)), {sender: myPhone, type: 'audio', audio: audioBase64, timestamp: Date.now(), duration: recordingSeconds});
+                        uploadStatus.textContent = '✅ ส่งเสียงสำเร็จ';
+                        setTimeout(() => {uploadStatus.classList.add('hidden');}, 800);
+                    } catch (error) {console.error(error); alert('ส่งเสียงไม่ได้: ' + error.message); uploadStatus.classList.add('hidden');}
+                };
+                mediaRecorder.start();
+                recordingModal.classList.remove('hidden');
+                recordingModal.classList.add('flex');
+                startRecordingTimer();
+            } catch (error) {console.error(error); alert('ไม่สามารถใช้ไมโครโฟนได้ กรุณาอนุญาตการใช้งานไมโครโฟน');}
+        });
 
-                        btnImage.disabled =
-                            true;
+        btnStopRecord.addEventListener('click', () => {stopRecording();});
+        function stopRecording() {stopRecordingTimer(); if (mediaRecorder && mediaRecorder.state !== 'inactive') {mediaRecorder.stop();} recordingModal.classList.add('hidden'); recordingModal.classList.remove('flex');}
+        btnCancelRecord.addEventListener('click', () => {stopRecordingTimer(); if (mediaRecorder && mediaRecorder.state !== 'inactive') {mediaRecorder.ondataavailable = null; mediaRecorder.onstop = null; mediaRecorder.stop();} recordingModal.classList.add('hidden'); recordingModal.classList.remove('flex');});
 
-                        uploadStatus.textContent =
-                            '⏳ กำลังบีบอัดรูปภาพ...';
+        // ADD FRIEND
+        btnAddFriend.addEventListener('click', async () => {
+            const friendPhone = addFriendPhone.value.trim();
+            const friendName = addFriendName.value.trim();
+            if (!friendPhone || friendPhone.length < 9) {alert('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'); return;}
+            if (friendPhone === myPhone) {alert('ไม่สามารถเพิ่มตัวเองได้'); return;}
+            try {
+                await set(ref(db, `users/${myPhone}/contacts/${friendPhone}`), {savedName: friendName || friendPhone});
+                const friendSide = await get(ref(db, `users/${friendPhone}/contacts/${myPhone}`));
+                if (!friendSide.exists()) {await set(ref(db, `users/${friendPhone}/contacts/${myPhone}`), {savedName: myPhone});}
+                addFriendPhone.value = ''; addFriendName.value = '';
+                alert('บันทึกเพื่อนสำเร็จ');
+            } catch (error) {console.error(error); alert('ไม่สามารถเพิ่มเพื่อนได้');}
+        });
 
-                        uploadStatus.classList.remove(
-                            'hidden'
-                        );
+        // FRIEND LIST
+        onValue(ref(db, `users/${myPhone}/contacts`), snapshot => {
+            const contacts = snapshot.val();
+            friendsList.innerHTML = '';
+            if (!contacts) {friendsList.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">ยังไม่มีเพื่อนในรายการ</p>`; return;}
+            Object.keys(contacts).forEach(friendPhone => {
+                const contactObj = contacts[friendPhone];
+                const displayName = (typeof contactObj === 'object' && contactObj.savedName) ? contactObj.savedName : friendPhone;
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl cursor-pointer flex items-center gap-3 transition hover:bg-slate-200/60 ${currentActiveFriend === friendPhone ? 'bg-rose-100 border border-rose-200' : 'bg-white border border-slate-100'}`;
+                item.innerHTML = `<div class="w-10 h-10 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shrink-0">👤</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-slate-800 truncate">${escapeHTML(displayName)}</p><p class="text-xs text-slate-400 font-mono">${escapeHTML(friendPhone)}</p></div>`;
+                item.addEventListener('click', () => openChatWith(friendPhone, displayName));
+                friendsList.appendChild(item);
+            });
+        });
 
+        // OPEN CHAT
+        async function openChatWith(friendPhone, displayName) {
+            currentActiveFriend = friendPhone;
+            chatTargetName.textContent = displayName;
+            chatTargetPhone.textContent = friendPhone;
+            noChatSelected.classList.add('hidden');
+            activeChat.classList.remove('hidden');
+            activeChat.classList.add('flex');
+            sidebar.classList.add('hidden');
+            chatWindow.classList.remove('hidden');
+            const settingsSnap = await get(ref(db, `users/${myPhone}/chat_settings/${friendPhone}`));
+            if (settingsSnap.exists()) {
+                const settings = settingsSnap.val();
+                selectedTheme = settings.theme || 'rose';
+                document.getElementById('setting-auto-delete').value = settings.autoDelete || 'off';
+            } else {selectedTheme = 'rose'; document.getElementById('setting-auto-delete').value = 'off';}
+            applyTheme(selectedTheme);
+            const roomId = getChatRoomId(myPhone, friendPhone);
+            const messagesRef = ref(db, `chats/${roomId}/messages`);
+            if (currentMessagesListener) {currentMessagesListener(); currentMessagesListener = null;}
+            currentMessagesListener = onValue(messagesRef, snapshot => {renderMessages(snapshot.val(), roomId);});
+        }
 
-                        const imageBase64 =
-                            await compressImage(
-                                file
-                            );
+        // RENDER MESSAGES
+        function renderMessages(messages, roomId) {
+            messagesContainer.innerHTML = '';
+            if (!messages) {messagesContainer.innerHTML = `<p class="text-center text-xs text-slate-400 py-10">ยังไม่มีข้อความ เริ่มพูดคุยกันได้เลย 💬</p>`; return;}
+            const now = Date.now();
+            const autoDel = document.getElementById('setting-auto-delete').value;
+            Object.keys(messages).forEach(msgId => {
+                const msg = messages[msgId];
+                if (!msg) return;
+                const age = now - (msg.timestamp || now);
+                let shouldDelete = false;
+                if (autoDel === '1min' && age > 60000) shouldDelete = true;
+                if (autoDel === '1hour' && age > 3600000) shouldDelete = true;
+                if (autoDel === '24hours' && age > 86400000) shouldDelete = true;
+                if (shouldDelete) {remove(ref(db, `chats/${roomId}/messages/${msgId}`)); return;}
+                const isMe = msg.sender === myPhone;
+                const row = document.createElement('div');
+                row.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                let content = '';
+                if (msg.type === 'text' || !msg.type) {content = `<div class="break-words">${convertMessageText(msg.text || '')}</div>`;}
+                else if (msg.type === 'image' && msg.image) {content = `<img src="${msg.image}" alt="รูปภาพ" class="message-image shadow-sm" data-image-viewer="true">`;}
+                else if (msg.type === 'audio' && msg.audio) {content = `<div class="flex flex-col gap-2"><div class="text-xs opacity-80">🎙️ เสียง</div><audio controls preload="metadata" class="audio-player"><source src="${msg.audio}"></audio></div>`;}
+                row.innerHTML = `<div class="flex items-start gap-2 max-w-[94%] ${isMe ? 'flex-row-reverse' : ''}"><div class="px-3 py-2.5 rounded-2xl text-sm shadow-sm overflow-hidden ${isMe ? `${currentThemeClass} text-white rounded-br-none` : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'}">${content}</div>${isMe ? `<div class="flex items-center gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 shrink-0">${msg.type === 'text' ? `<button class="btn-edit-msg p-1 hover:bg-slate-100 rounded" data-id="${msgId}">✏️</button>` : ''}<button class="btn-delete-msg p-1 hover:bg-rose-100 rounded text-rose-500" data-id="${msgId}">🗑️</button></div>` : ''}</div><span class="text-[10px] text-slate-400 mt-1 px-1">${formatDateTime(msg.timestamp)}${msg.isEdited ? ' · แก้ไขแล้ว' : ''}</span>`;
+                messagesContainer.appendChild(row);
+                const image = row.querySelector('[data-image-viewer="true"]');
+                if (image) {image.addEventListener('click', () => openImageViewer(image.src));}
+            });
+            messagesContainer.querySelectorAll('.btn-delete-msg').forEach(button => {
+                button.addEventListener('click', async () => {const id = button.dataset.id; if (!confirm('ต้องการลบข้อความนี้หรือไม่?')) return; await remove(ref(db, `chats/${roomId}/messages/${id}`));});
+            });
+            messagesContainer.querySelectorAll('.btn-edit-msg').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const id = button.dataset.id;
+                    const snap = await get(ref(db, `chats/${roomId}/messages/${id}`));
+                    if (!snap.exists()) return;
+                    const msg = snap.val();
+                    const newText = prompt('แก้ไขข้อความ', msg.text || '');
+                    if (newText === null) return;
+                    const clean = newText.trim();
+                    if (!clean) return;
+                    await update(ref(db, `chats/${roomId}/messages/${id}`), {text: clean, isEdited: true});
+                });
+            });
+            requestAnimationFrame(() => {messagesContainer.scrollTop = messagesContainer.scrollHeight;});
+        }
 
+        // SEND TEXT
+        chatForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (!text || !currentActiveFriend) return;
+            try {
+                btnSendMsg.disabled = true;
+                const roomId = getChatRoomId(myPhone, currentActiveFriend);
+                await set(push(ref(db, `chats/${roomId}/messages`)), {sender: myPhone, type: 'text', text: text, timestamp: Date.now()});
+                messageInput.value = '';
+                // play notification sound for sender (optional)
+                // playNotificationSound(); // if you want to hear own send sound
+            } catch (error) {console.error(error); alert('ไม่สามารถส่งข้อความได้');} finally {btnSendMsg.disabled = false; messageInput.focus();}
+        });
 
-                        uploadStatus.textContent =
-                            '📤 กำลังส่งรูปภาพ...';
+        // THEME
+        function applyTheme(themeKey) {selectedTheme = themeKey; currentThemeClass = themes[themeKey] || themes.rose; btnSendMsg.className = `${currentThemeClass} hover:opacity-90 text-white h-11 px-5 rounded-xl font-medium transition shadow-sm flex items-center justify-center text-sm shrink-0`;}
 
+        // SETTINGS OPEN (chat header click)
+        document.getElementById('chat-header-clickable').addEventListener('click', () => {
+            if (!currentActiveFriend) return;
+            document.getElementById('setting-edit-name').value = chatTargetName.textContent;
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        });
+        document.getElementById('btn-close-modal').addEventListener('click', closeSettings);
+        function closeSettings() {document.getElementById('settings-modal').classList.add('hidden'); document.getElementById('settings-modal').classList.remove('flex');}
+        document.querySelectorAll('.theme-btn').forEach(button => {button.addEventListener('click', () => {applyTheme(button.dataset.theme);});});
+        document.getElementById('btn-save-settings').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            const name = document.getElementById('setting-edit-name').value.trim();
+            const autoDelete = document.getElementById('setting-auto-delete').value;
+            await set(ref(db, `users/${myPhone}/contacts/${currentActiveFriend}/savedName`), name || currentActiveFriend);
+            await set(ref(db, `users/${myPhone}/chat_settings/${currentActiveFriend}`), {theme: selectedTheme, autoDelete: autoDelete});
+            chatTargetName.textContent = name || currentActiveFriend;
+            closeSettings();
+        });
+        document.getElementById('btn-clear-all-messages').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            if (!confirm('ยืนยันลบประวัติข้อความทั้งหมดหรือไม่?')) return;
+            const roomId = getChatRoomId(myPhone, currentActiveFriend);
+            await remove(ref(db, `chats/${roomId}/messages`));
+            closeSettings();
+        });
+        document.getElementById('btn-block-friend').addEventListener('click', async () => {
+            if (!currentActiveFriend) return;
+            const friend = currentActiveFriend;
+            if (!confirm(`ต้องการบล็อกและลบ ${friend} หรือไม่?`)) return;
+            const roomId = getChatRoomId(myPhone, friend);
+            await remove(ref(db, `users/${myPhone}/contacts/${friend}`));
+            await remove(ref(db, `users/${friend}/contacts/${myPhone}`));
+            await remove(ref(db, `chats/${roomId}`));
+            await remove(ref(db, `users/${myPhone}/chat_settings/${friend}`));
+            currentActiveFriend = null;
+            activeChat.classList.add('hidden');
+            noChatSelected.classList.remove('hidden');
+            sidebar.classList.remove('hidden');
+            chatWindow.classList.add('hidden');
+            closeSettings();
+        });
 
-                        const roomId =
-                            getChatRoomId(
-                                myPhone,
-                                currentActiveFriend
-                            );
+        // MOBILE BACK
+        btnBackSidebar.addEventListener('click', () => {
+            if (currentMessagesListener) {currentMessagesListener(); currentMessagesListener = null;}
+            currentActiveFriend = null;
+            chatWindow.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+        });
 
+        // PEERJS
+        function initializePeer() {
+            try {
+                peer = new Peer(myPhone, {debug: 1});
+                peer.on('open', id => {console.log('PeerJS connected:', id);});
+                peer.on('error', error => {console.error('PeerJS:', error);});
+                peer.on('call', async call => {
+                    currentCall = call;
+                    call.on('stream', remoteStream => {
+                        remoteVideo.srcObject = remoteStream;
+                        remoteVideo.classList.remove('hidden');
+                        audioCallIcon.classList.add('hidden');
+                        callStatus.textContent = 'กำลังสนทนา...';
+                    });
+                    call.on('close', () => {closeCallUI();});
+                });
+            } catch (error) {console.error(error);}
+        }
+        initializePeer();
 
-                        await set(
-                            push(
-                                ref(
-                                    db,
-                                    `chats/${roomId}/messages`
-                                )
-                            ),
-                            {
-
-                                sender:
-                                    myPhone,
-
-                                type:
-                                    'image',
-
-                                image:
-                                    imageBase64,
-
-                                timestamp:
-                                    Date.now()
-
-                            }
-                        );
-
-
-                        uploadStatus.textContent =
-                            '✅ ส่งรูปสำเร็จ';
-
-
-                        setTimeout(
-                            () => {
-
-                                uploadStatus.classList.add(
-                                    'hidden'
-                                );
-
-                            },
-                            800
-                        );
-
-
-                    } catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'ส่งรูปไม่ได้: ' +
-                            error.message
-                        );
-
-                        uploadStatus.classList.add(
-                            'hidden'
-                        );
-
-                    } finally {
-
-                        btnImage.disabled =
-                            false;
-
-                        imageInput.value =
-                            '';
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // IMAGE VIEWER
-            // =========================================================
-
-            function openImageViewer(src) {
-
-                viewerImage.src =
-                    src;
-
-                imageViewer.classList.remove(
-                    'hidden'
-                );
-
-                imageViewer.classList.add(
-                    'flex'
-                );
-
+        // INCOMING CALL
+        onValue(ref(db, `calls/${myPhone}`), snapshot => {
+            const data = snapshot.val();
+            if (data && data.status === 'ringing') {
+                pendingCallData = data;
+                callerName.textContent = data.callerName || data.callerPhone;
+                callTypeText.textContent = data.isVideo ? '📹 มีวิดีโอคอลเข้า' : '📞 มีสายเสียงเข้า';
+                incomingCallModal.classList.remove('hidden');
+                incomingCallModal.classList.add('flex');
+                (async () => {
+                    const url = await getRingtoneUrl();
+                    ringtoneIncoming.src = url;
+                    ringtoneIncoming.currentTime = 0;
+                    ringtoneIncoming.loop = true;
+                    ringtoneIncoming.play().catch(() => { });
+                })();
             }
+        });
 
+        // START CALL
+        async function startCall(isVideo) {
+            if (!currentActiveFriend) return;
+            if (!peer || peer.destroyed) {alert('ระบบโทรยังไม่พร้อม กรุณารอสักครู่แล้วลองใหม่'); return;}
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({video: isVideo, audio: true});
+                localVideo.srcObject = localStream;
+                if (isVideo) {localVideo.classList.remove('hidden'); audioCallIcon.classList.add('hidden');} else {localVideo.classList.add('hidden'); audioCallIcon.classList.remove('hidden');}
+                callScreenModal.classList.remove('hidden');
+                callScreenModal.classList.add('flex');
+                callScreenName.textContent = chatTargetName.textContent;
+                callStatus.textContent = 'กำลังเรียกสาย...';
+                micEnabled = true; camEnabled = true;
+                const ringUrl = await getRingtoneUrl();
+                ringtoneOutgoing.src = ringUrl;
+                ringtoneOutgoing.currentTime = 0;
+                ringtoneOutgoing.loop = true;
+                ringtoneOutgoing.play().catch(() => { });
+                await set(ref(db, `calls/${currentActiveFriend}`), {callerPhone: myPhone, callerName: chatTargetName.textContent, isVideo: isVideo, status: 'ringing', timestamp: Date.now()});
+                const call = peer.call(currentActiveFriend, localStream);
+                currentCall = call;
+                call.on('stream', remoteStream => {
+                    ringtoneOutgoing.pause();
+                    callStatus.textContent = 'กำลังสนทนา...';
+                    remoteVideo.srcObject = remoteStream;
+                    if (isVideo) {remoteVideo.classList.remove('hidden');} else {remoteVideo.classList.add('hidden'); audioCallIcon.classList.remove('hidden');}
+                });
+                call.on('close', closeCallUI);
+                call.on('error', error => {console.error(error); closeCallUI();});
+            } catch (error) {console.error(error); alert('ไม่สามารถใช้ไมโครโฟนหรือกล้องได้: ' + error.message); closeCallUI();}
+        }
+        btnVoiceCall.addEventListener('click', () => startCall(false));
+        btnVideoCall.addEventListener('click', () => startCall(true));
 
-            function closeViewer() {
+        // ACCEPT CALL
+        btnAcceptCall.addEventListener('click', async () => {
+            if (!pendingCallData || !currentCall) return;
+            ringtoneIncoming.pause();
+            incomingCallModal.classList.add('hidden');
+            incomingCallModal.classList.remove('flex');
+            try {
+                const isVideo = pendingCallData.isVideo;
+                localStream = await navigator.mediaDevices.getUserMedia({video: isVideo, audio: true});
+                localVideo.srcObject = localStream;
+                callScreenModal.classList.remove('hidden');
+                callScreenModal.classList.add('flex');
+                callScreenName.textContent = pendingCallData.callerName || pendingCallData.callerPhone;
+                callStatus.textContent = 'กำลังสนทนา...';
+                if (isVideo) {localVideo.classList.remove('hidden'); audioCallIcon.classList.add('hidden');} else {localVideo.classList.add('hidden'); audioCallIcon.classList.remove('hidden');}
+                currentCall.answer(localStream);
+                await update(ref(db, `calls/${myPhone}`), {status: 'answered'});
+                currentCall.on('stream', remoteStream => {
+                    remoteVideo.srcObject = remoteStream;
+                    if (isVideo) {remoteVideo.classList.remove('hidden');}
+                    callStatus.textContent = 'กำลังสนทนา...';
+                });
+                currentCall.on('close', closeCallUI);
+            } catch (error) {console.error(error); alert('ไม่สามารถรับสายได้: ' + error.message); closeCallUI();}
+        });
 
-                imageViewer.classList.add(
-                    'hidden'
-                );
+        // REJECT
+        btnRejectCall.addEventListener('click', async () => {
+            ringtoneIncoming.pause();
+            await remove(ref(db, `calls/${myPhone}`));
+            closeCallUI();
+        });
 
-                imageViewer.classList.remove(
-                    'flex'
-                );
+        // END CALL
+        btnEndCall.addEventListener('click', () => {endCallSession();});
+        async function endCallSession() {
+            try {if (currentActiveFriend) {await remove(ref(db, `calls/${currentActiveFriend}`));} await remove(ref(db, `calls/${myPhone}`));} catch (error) {console.error(error);}
+            closeCallUI();
+        }
 
-                viewerImage.src =
-                    '';
+        // CLOSE CALL
+        function closeCallUI() {
+            ringtoneIncoming.pause(); ringtoneOutgoing.pause();
+            ringtoneIncoming.currentTime = 0; ringtoneOutgoing.currentTime = 0;
+            if (currentCall) {try {currentCall.close();} catch (e) { } currentCall = null;}
+            if (localStream) {localStream.getTracks().forEach(track => track.stop()); localStream = null;}
+            localVideo.srcObject = null; remoteVideo.srcObject = null;
+            localVideo.classList.add('hidden'); remoteVideo.classList.add('hidden');
+            audioCallIcon.classList.remove('hidden');
+            incomingCallModal.classList.add('hidden'); incomingCallModal.classList.remove('flex');
+            callScreenModal.classList.add('hidden'); callScreenModal.classList.remove('flex');
+            pendingCallData = null;
+            micEnabled = true; camEnabled = true;
+            btnToggleMic.textContent = '🎙️'; btnToggleCam.textContent = '📹';
+        }
 
-            }
+        // MIC
+        btnToggleMic.addEventListener('click', () => {
+            if (!localStream) return;
+            const tracks = localStream.getAudioTracks();
+            if (!tracks.length) return;
+            micEnabled = !micEnabled;
+            tracks.forEach(track => {track.enabled = micEnabled;});
+            btnToggleMic.textContent = micEnabled ? '🎙️' : '🔇';
+        });
+        // CAMERA
+        btnToggleCam.addEventListener('click', () => {
+            if (!localStream) return;
+            const tracks = localStream.getVideoTracks();
+            if (!tracks.length) return;
+            camEnabled = !camEnabled;
+            tracks.forEach(track => {track.enabled = camEnabled;});
+            btnToggleCam.textContent = camEnabled ? '📹' : '📷';
+        });
 
+        // PREVENT PINCH ZOOM
+        document.addEventListener('gesturestart', e => {e.preventDefault();}, {passive: false});
+        document.addEventListener('gesturechange', e => {e.preventDefault();}, {passive: false});
+        document.addEventListener('gestureend', e => {e.preventDefault();}, {passive: false});
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', e => {const now = Date.now(); if (now - lastTouchEnd <= 300) {e.preventDefault();} lastTouchEnd = now;}, {passive: false});
 
-            closeImageViewer.addEventListener(
-                'click',
-                closeViewer
-            );
+        // ENTER TO SEND
+        messageInput.addEventListener('keydown', e => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault(); chatForm.requestSubmit();} });
 
+        // FCM NOTIFICATION
+        const messaging = getMessaging(app);
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('อนุญาตการแจ้งเตือนเรียบร้อยแล้ว');
+                    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    const currentToken = await getToken(messaging, {
+                        serviceWorkerRegistration: registration,
+                        vapidKey: 'BLH8thi9C0Mxd5X58SC45EcOttDgdrm4e26wme4UTLZcQ_u-UKEeosi_idL3UpF7igmnY1H-LFJhZ6NDVlfZVcs'
+                    });
+                    if (currentToken) {await set(ref(db, `users/${myPhone}/fcmToken`), currentToken); console.log('บันทึก FCM Token เรียบร้อยแล้ว');}
+                } else {alert('กรุณากดอนุญาตการแจ้งเตือน (Allow) เพื่อให้ระบบเตือนเวลาคนโทรหาขณะปิดหน้าจอครับ');}
+            } catch (err) {console.error('เกิดข้อผิดพลาดในการขอสิทธิ์แจ้งเตือน:', err);}
+        }
+        requestNotificationPermission();
 
-            imageViewer.addEventListener(
-                'click',
-                e => {
-
-                    if (
-                        e.target === imageViewer
-                    ) {
-
-                        closeViewer();
-
+        // Play notification sound on new message (trigger via Firebase listener)
+        // This will be called when a new message arrives from other user.
+        // We use onValue on messages but to avoid playing on own messages, we check sender.
+        // We'll add a listener per chat.
+        // Already we have onValue in openChatWith, we can modify to play sound if not sender.
+        // Override renderMessages to play sound for incoming messages.
+        // We'll use a separate listener for new message detection.
+        // We'll set up a global listener for all chats or modify existing.
+        // Add a simple listener on the active chat messages to play sound.
+        // We'll patch: in openChatWith, after setting currentMessagesListener, we also add a sound trigger.
+        // Let's override the renderMessages to play sound for incoming messages.
+        const originalRender = renderMessages;
+        renderMessages = function (messages, roomId) {
+            // check if there is a new message from other user
+            if (messages) {
+                const keys = Object.keys(messages);
+                if (keys.length > 0) {
+                    const lastKey = keys[keys.length - 1];
+                    const lastMsg = messages[lastKey];
+                    if (lastMsg && lastMsg.sender !== myPhone) {
+                        // play notification sound
+                        playNotificationSound();
                     }
-
-                }
-            );
-
-
-            // =========================================================
-            // AUDIO RECORDING
-            // =========================================================
-
-            function blobToDataURL(blob) {
-
-                return new Promise(
-                    (resolve, reject) => {
-
-                        const reader =
-                            new FileReader();
-
-                        reader.onloadend =
-                            () => resolve(
-                                reader.result
-                            );
-
-                        reader.onerror =
-                            reject;
-
-                        reader.readAsDataURL(
-                            blob
-                        );
-
-                    }
-                );
-
-            }
-
-
-            function startRecordingTimer() {
-
-                recordingSeconds =
-                    0;
-
-                recordingTime.textContent =
-                    '00:00';
-
-
-                recordingTimer =
-                    setInterval(
-                        () => {
-
-                            recordingSeconds++;
-
-                            const min =
-                                Math.floor(
-                                    recordingSeconds / 60
-                                );
-
-                            const sec =
-                                recordingSeconds % 60;
-
-
-                            recordingTime.textContent =
-                                `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-
-
-                            if (
-                                recordingSeconds >= 120
-                            ) {
-
-                                stopRecording();
-
-                            }
-
-                        },
-                        1000
-                    );
-
-            }
-
-
-            function stopRecordingTimer() {
-
-                if (
-                    recordingTimer
-                ) {
-
-                    clearInterval(
-                        recordingTimer
-                    );
-
-                    recordingTimer =
-                        null;
-
-                }
-
-            }
-
-
-            btnRecord.addEventListener(
-                'click',
-                async () => {
-
-                    if (
-                        !currentActiveFriend
-                    ) {
-
-                        alert(
-                            'กรุณาเลือกเพื่อนก่อน'
-                        );
-
-                        return;
-
-                    }
-
-
-                    try {
-
-                        const stream =
-                            await navigator.mediaDevices
-                                .getUserMedia({
-                                    audio: true
-                                });
-
-
-                        recordedChunks =
-                            [];
-
-
-                        let mimeType =
-                            'audio/webm';
-
-
-                        if (
-                            !MediaRecorder.isTypeSupported(
-                                'audio/webm'
-                            )
-                        ) {
-
-                            mimeType =
-                                '';
-
-                        }
-
-
-                        mediaRecorder =
-                            mimeType
-                                ? new MediaRecorder(
-                                    stream,
-                                    {
-                                        mimeType
-                                    }
-                                )
-                                : new MediaRecorder(
-                                    stream
-                                );
-
-
-                        mediaRecorder.ondataavailable =
-                            event => {
-
-                                if (
-                                    event.data.size >
-                                    0
-                                ) {
-
-                                    recordedChunks.push(
-                                        event.data
-                                    );
-
-                                }
-
-                            };
-
-
-                        mediaRecorder.onstop =
-                            async () => {
-
-                                stream
-                                    .getTracks()
-                                    .forEach(
-                                        track =>
-                                            track.stop()
-                                    );
-
-
-                                const blob =
-                                    new Blob(
-                                        recordedChunks,
-                                        {
-                                            type:
-                                                mediaRecorder.mimeType ||
-                                                'audio/webm'
-                                        }
-                                    );
-
-
-                                // จำกัดเสียงประมาณ 700KB
-                                if (
-                                    blob.size >
-                                    700 * 1024
-                                ) {
-
-                                    alert(
-                                        'ไฟล์เสียงใหญ่เกินไป กรุณาอัดเสียงสั้นลง'
-                                    );
-
-                                    return;
-
-                                }
-
-
-                                try {
-
-                                    uploadStatus.textContent =
-                                        '📤 กำลังส่งเสียง...';
-
-                                    uploadStatus.classList.remove(
-                                        'hidden'
-                                    );
-
-
-                                    const audioBase64 =
-                                        await blobToDataURL(
-                                            blob
-                                        );
-
-
-                                    const roomId =
-                                        getChatRoomId(
-                                            myPhone,
-                                            currentActiveFriend
-                                        );
-
-
-                                    await set(
-                                        push(
-                                            ref(
-                                                db,
-                                                `chats/${roomId}/messages`
-                                            )
-                                        ),
-                                        {
-
-                                            sender:
-                                                myPhone,
-
-                                            type:
-                                                'audio',
-
-                                            audio:
-                                                audioBase64,
-
-                                            timestamp:
-                                                Date.now(),
-
-                                            duration:
-                                                recordingSeconds
-
-                                        }
-                                    );
-
-
-                                    uploadStatus.textContent =
-                                        '✅ ส่งเสียงสำเร็จ';
-
-
-                                    setTimeout(
-                                        () => {
-
-                                            uploadStatus.classList.add(
-                                                'hidden'
-                                            );
-
-                                        },
-                                        800
-                                    );
-
-
-                                } catch (error) {
-
-                                    console.error(
-                                        error
-                                    );
-
-                                    alert(
-                                        'ส่งเสียงไม่ได้: ' +
-                                        error.message
-                                    );
-
-                                    uploadStatus.classList.add(
-                                        'hidden'
-                                    );
-
-                                }
-
-                            };
-
-
-                        mediaRecorder.start();
-
-
-                        recordingModal.classList.remove(
-                            'hidden'
-                        );
-
-                        recordingModal.classList.add(
-                            'flex'
-                        );
-
-
-                        startRecordingTimer();
-
-                    } catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'ไม่สามารถใช้ไมโครโฟนได้ กรุณาอนุญาตการใช้งานไมโครโฟน'
-                        );
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // STOP RECORD
-            // =========================================================
-
-            btnStopRecord.addEventListener(
-                'click',
-                () => {
-
-                    stopRecording();
-
-                }
-            );
-
-
-            function stopRecording() {
-
-                stopRecordingTimer();
-
-
-                if (
-                    mediaRecorder &&
-                    mediaRecorder.state !== 'inactive'
-                ) {
-
-                    mediaRecorder.stop();
-
-                }
-
-
-                recordingModal.classList.add(
-                    'hidden'
-                );
-
-                recordingModal.classList.remove(
-                    'flex'
-                );
-
-            }
-
-
-            // =========================================================
-            // CANCEL RECORD
-            // =========================================================
-
-            btnCancelRecord.addEventListener(
-                'click',
-                () => {
-
-                    stopRecordingTimer();
-
-
-                    if (
-                        mediaRecorder &&
-                        mediaRecorder.state !== 'inactive'
-                    ) {
-
-                        mediaRecorder.ondataavailable =
-                            null;
-
-                        mediaRecorder.onstop =
-                            null;
-
-                        mediaRecorder.stop();
-
-                    }
-
-
-                    recordingModal.classList.add(
-                        'hidden'
-                    );
-
-                    recordingModal.classList.remove(
-                        'flex'
-                    );
-
-                }
-            );
-
-
-            // =========================================================
-            // ADD FRIEND
-            // =========================================================
-
-            btnAddFriend.addEventListener(
-                'click',
-                async () => {
-
-                    const friendPhone =
-                        addFriendPhone.value.trim();
-
-                    const friendName =
-                        addFriendName.value.trim();
-
-
-                    if (
-                        !friendPhone ||
-                        friendPhone.length < 9
-                    ) {
-
-                        alert(
-                            'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'
-                        );
-
-                        return;
-
-                    }
-
-
-                    if (
-                        friendPhone === myPhone
-                    ) {
-
-                        alert(
-                            'ไม่สามารถเพิ่มตัวเองได้'
-                        );
-
-                        return;
-
-                    }
-
-
-                    try {
-
-                        await set(
-                            ref(
-                                db,
-                                `users/${myPhone}/contacts/${friendPhone}`
-                            ),
-                            {
-
-                                savedName:
-                                    friendName ||
-                                    friendPhone
-
-                            }
-                        );
-
-
-                        const friendSide =
-                            await get(
-                                ref(
-                                    db,
-                                    `users/${friendPhone}/contacts/${myPhone}`
-                                )
-                            );
-
-
-                        if (
-                            !friendSide.exists()
-                        ) {
-
-                            await set(
-                                ref(
-                                    db,
-                                    `users/${friendPhone}/contacts/${myPhone}`
-                                ),
-                                {
-
-                                    savedName:
-                                        myPhone
-
-                                }
-                            );
-
-                        }
-
-
-                        addFriendPhone.value =
-                            '';
-
-                        addFriendName.value =
-                            '';
-
-
-                        alert(
-                            'บันทึกเพื่อนสำเร็จ'
-                        );
-
-                    } catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'ไม่สามารถเพิ่มเพื่อนได้'
-                        );
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // FRIEND LIST
-            // =========================================================
-
-            onValue(
-                ref(
-                    db,
-                    `users/${myPhone}/contacts`
-                ),
-                snapshot => {
-
-                    const contacts =
-                        snapshot.val();
-
-
-                    friendsList.innerHTML =
-                        '';
-
-
-                    if (
-                        !contacts
-                    ) {
-
-                        friendsList.innerHTML =
-                            `
-                        <p class="text-center text-xs text-slate-400 py-6">
-                            ยังไม่มีเพื่อนในรายการ
-                        </p>
-                        `;
-
-                        return;
-
-                    }
-
-
-                    Object.keys(
-                        contacts
-                    ).forEach(
-                        friendPhone => {
-
-                            const contactObj =
-                                contacts[
-                                friendPhone
-                                ];
-
-
-                            const displayName =
-                                (
-                                    typeof contactObj ===
-                                    'object' &&
-                                    contactObj.savedName
-                                )
-                                    ? contactObj.savedName
-                                    : friendPhone;
-
-
-                            const item =
-                                document.createElement(
-                                    'div'
-                                );
-
-
-                            item.className =
-                                `
-                            p-3 rounded-xl cursor-pointer
-                            flex items-center gap-3
-                            transition
-                            hover:bg-slate-200/60
-                            ${currentActiveFriend ===
-                                    friendPhone
-                                    ? 'bg-rose-100 border border-rose-200'
-                                    : 'bg-white border border-slate-100'
-                                }
-                            `;
-
-
-                            item.innerHTML =
-                                `
-
-                            <div
-                                class="w-10 h-10 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
-                                👤
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-
-                                <p class="text-sm font-semibold text-slate-800 truncate">
-                                    ${escapeHTML(displayName)}
-                                </p>
-
-                                <p class="text-xs text-slate-400 font-mono">
-                                    ${escapeHTML(friendPhone)}
-                                </p>
-
-                            </div>
-
-                            `;
-
-
-                            item.addEventListener(
-                                'click',
-                                () =>
-                                    openChatWith(
-                                        friendPhone,
-                                        displayName
-                                    )
-                            );
-
-
-                            friendsList.appendChild(
-                                item
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-            // =========================================================
-            // OPEN CHAT
-            // =========================================================
-
-            async function openChatWith(
-                friendPhone,
-                displayName
-            ) {
-
-                currentActiveFriend =
-                    friendPhone;
-
-
-                chatTargetName.textContent =
-                    displayName;
-
-                chatTargetPhone.textContent =
-                    friendPhone;
-
-
-                noChatSelected.classList.add(
-                    'hidden'
-                );
-
-                activeChat.classList.remove(
-                    'hidden'
-                );
-
-                activeChat.classList.add(
-                    'flex'
-                );
-
-
-                sidebar.classList.add(
-                    'hidden'
-                );
-
-                chatWindow.classList.remove(
-                    'hidden'
-                );
-
-
-                const settingsSnap =
-                    await get(
-                        ref(
-                            db,
-                            `users/${myPhone}/chat_settings/${friendPhone}`
-                        )
-                    );
-
-
-                if (
-                    settingsSnap.exists()
-                ) {
-
-                    const settings =
-                        settingsSnap.val();
-
-
-                    selectedTheme =
-                        settings.theme ||
-                        'rose';
-
-
-                    document.getElementById(
-                        'setting-auto-delete'
-                    ).value =
-                        settings.autoDelete ||
-                        'off';
-
-                } else {
-
-                    selectedTheme =
-                        'rose';
-
-                    document.getElementById(
-                        'setting-auto-delete'
-                    ).value =
-                        'off';
-
-                }
-
-
-                applyTheme(
-                    selectedTheme
-                );
-
-
-                const roomId =
-                    getChatRoomId(
-                        myPhone,
-                        friendPhone
-                    );
-
-
-                const messagesRef =
-                    ref(
-                        db,
-                        `chats/${roomId}/messages`
-                    );
-
-
-                if (
-                    currentMessagesListener
-                ) {
-
-                    currentMessagesListener();
-
-                    currentMessagesListener =
-                        null;
-
-                }
-
-
-                currentMessagesListener =
-                    onValue(
-                        messagesRef,
-                        snapshot => {
-
-                            renderMessages(
-                                snapshot.val(),
-                                roomId
-                            );
-
-                        }
-                    );
-
-            }
-
-
-            // =========================================================
-            // RENDER MESSAGES
-            // =========================================================
-
-            function renderMessages(
-                messages,
-                roomId
-            ) {
-
-                messagesContainer.innerHTML =
-                    '';
-
-
-                if (!messages) {
-
-                    messagesContainer.innerHTML =
-                        `
-                    <p class="text-center text-xs text-slate-400 py-10">
-                        ยังไม่มีข้อความ เริ่มพูดคุยกันได้เลย 💬
-                    </p>
-                    `;
-
-                    return;
-
-                }
-
-
-                const now =
-                    Date.now();
-
-
-                const autoDel =
-                    document.getElementById(
-                        'setting-auto-delete'
-                    ).value;
-
-
-                Object.keys(messages)
-                    .forEach(
-                        msgId => {
-
-                            const msg =
-                                messages[msgId];
-
-
-                            if (!msg)
-                                return;
-
-
-                            const age =
-                                now -
-                                (msg.timestamp || now);
-
-
-                            let shouldDelete =
-                                false;
-
-
-                            if (
-                                autoDel ===
-                                '1min' &&
-                                age > 60000
-                            ) {
-
-                                shouldDelete =
-                                    true;
-
-                            }
-
-
-                            if (
-                                autoDel ===
-                                '1hour' &&
-                                age > 3600000
-                            ) {
-
-                                shouldDelete =
-                                    true;
-
-                            }
-
-
-                            if (
-                                autoDel ===
-                                '24hours' &&
-                                age > 86400000
-                            ) {
-
-                                shouldDelete =
-                                    true;
-
-                            }
-
-
-                            if (
-                                shouldDelete
-                            ) {
-
-                                remove(
-                                    ref(
-                                        db,
-                                        `chats/${roomId}/messages/${msgId}`
-                                    )
-                                );
-
-                                return;
-
-                            }
-
-
-                            const isMe =
-                                msg.sender ===
-                                myPhone;
-
-
-                            const row =
-                                document.createElement(
-                                    'div'
-                                );
-
-
-                            row.className =
-                                `
-                            flex flex-col
-                            ${isMe
-                                    ? 'items-end'
-                                    : 'items-start'
-                                }
-                            `;
-
-
-                            let content =
-                                '';
-
-
-                            // TEXT
-
-                            if (
-                                msg.type === 'text' ||
-                                !msg.type
-                            ) {
-
-                                content =
-                                    `
-                                <div class="break-words">
-                                    ${convertMessageText(
-                                        msg.text || ''
-                                    )}
-                                </div>
-                                `;
-
-                            }
-
-
-                            // IMAGE
-
-                            else if (
-                                msg.type === 'image' &&
-                                msg.image
-                            ) {
-
-                                content =
-                                    `
-                                <img
-                                    src="${msg.image}"
-                                    alt="รูปภาพ"
-                                    class="message-image shadow-sm"
-                                    data-image-viewer="true">
-                                `;
-
-                            }
-
-
-                            // AUDIO
-
-                            else if (
-                                msg.type === 'audio' &&
-                                msg.audio
-                            ) {
-
-                                content =
-                                    `
-                                <div class="flex flex-col gap-2">
-
-                                    <div class="text-xs opacity-80">
-                                        🎙️ เสียง
-                                    </div>
-
-                                    <audio
-                                        controls
-                                        preload="metadata"
-                                        class="audio-player">
-                                        <source
-                                            src="${msg.audio}">
-                                    </audio>
-
-                                </div>
-                                `;
-
-                            }
-
-
-                            // MESSAGE BUBBLE
-
-                            row.innerHTML =
-                                `
-
-                            <div
-                                class="flex items-start gap-2 max-w-[94%]
-                                ${isMe
-                                    ? 'flex-row-reverse'
-                                    : ''
-                                }">
-
-                                <div
-                                    class="
-                                    px-3 py-2.5
-                                    rounded-2xl
-                                    text-sm
-                                    shadow-sm
-                                    overflow-hidden
-                                    ${isMe
-                                    ? `${currentThemeClass} text-white rounded-br-none`
-                                    : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
-                                }">
-
-                                    ${content}
-
-                                </div>
-
-
-                                ${isMe
-                                    ? `
-
-                                        <div
-                                            class="flex items-center gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 shrink-0">
-
-                                            ${msg.type ===
-                                        'text'
-                                        ? `
-                                                    <button
-                                                        class="btn-edit-msg p-1 hover:bg-slate-100 rounded"
-                                                        data-id="${msgId}">
-                                                        ✏️
-                                                    </button>
-                                                    `
-                                        : ''
-                                    }
-
-                                            <button
-                                                class="btn-delete-msg p-1 hover:bg-rose-100 rounded text-rose-500"
-                                                data-id="${msgId}">
-                                                🗑️
-                                            </button>
-
-                                        </div>
-
-                                        `
-                                    : ''
-                                }
-
-                            </div>
-
-
-                            <span
-                                class="text-[10px] text-slate-400 mt-1 px-1">
-
-                                ${formatDateTime(
-                                    msg.timestamp
-                                )}
-
-                                ${msg.isEdited
-                                    ? ' · แก้ไขแล้ว'
-                                    : ''
-                                }
-
-                            </span>
-
-                            `;
-
-
-                            messagesContainer.appendChild(
-                                row
-                            );
-
-
-                            // Image click
-
-                            const image =
-                                row.querySelector(
-                                    '[data-image-viewer="true"]'
-                                );
-
-
-                            if (image) {
-
-                                image.addEventListener(
-                                    'click',
-                                    () =>
-                                        openImageViewer(
-                                            image.src
-                                        )
-                                );
-
-                            }
-
-                        }
-                    );
-
-
-                // DELETE
-
-                messagesContainer
-                    .querySelectorAll(
-                        '.btn-delete-msg'
-                    )
-                    .forEach(
-                        button => {
-
-                            button.addEventListener(
-                                'click',
-                                async () => {
-
-                                    const id =
-                                        button.dataset.id;
-
-
-                                    if (
-                                        !confirm(
-                                            'ต้องการลบข้อความนี้หรือไม่?'
-                                        )
-                                    )
-                                        return;
-
-
-                                    await remove(
-                                        ref(
-                                            db,
-                                            `chats/${roomId}/messages/${id}`
-                                        )
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
-
-
-                // EDIT
-
-                messagesContainer
-                    .querySelectorAll(
-                        '.btn-edit-msg'
-                    )
-                    .forEach(
-                        button => {
-
-                            button.addEventListener(
-                                'click',
-                                async () => {
-
-                                    const id =
-                                        button.dataset.id;
-
-
-                                    const snap =
-                                        await get(
-                                            ref(
-                                                db,
-                                                `chats/${roomId}/messages/${id}`
-                                            )
-                                        );
-
-
-                                    if (
-                                        !snap.exists()
-                                    )
-                                        return;
-
-
-                                    const msg =
-                                        snap.val();
-
-
-                                    const newText =
-                                        prompt(
-                                            'แก้ไขข้อความ',
-                                            msg.text ||
-                                            ''
-                                        );
-
-
-                                    if (
-                                        newText ===
-                                        null
-                                    )
-                                        return;
-
-
-                                    const clean =
-                                        newText.trim();
-
-
-                                    if (!clean)
-                                        return;
-
-
-                                    await update(
-                                        ref(
-                                            db,
-                                            `chats/${roomId}/messages/${id}`
-                                        ),
-                                        {
-
-                                            text:
-                                                clean,
-
-                                            isEdited:
-                                                true
-
-                                        }
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
-
-
-                requestAnimationFrame(
-                    () => {
-
-                        messagesContainer.scrollTop =
-                            messagesContainer.scrollHeight;
-
-                    }
-                );
-
-            }
-
-
-            // =========================================================
-            // SEND TEXT
-            // =========================================================
-
-            chatForm.addEventListener(
-                'submit',
-                async e => {
-
-                    e.preventDefault();
-
-
-                    const text =
-                        messageInput.value.trim();
-
-
-                    if (
-                        !text ||
-                        !currentActiveFriend
-                    )
-                        return;
-
-
-                    try {
-
-                        btnSendMsg.disabled =
-                            true;
-
-
-                        const roomId =
-                            getChatRoomId(
-                                myPhone,
-                                currentActiveFriend
-                            );
-
-
-                        await set(
-                            push(
-                                ref(
-                                    db,
-                                    `chats/${roomId}/messages`
-                                )
-                            ),
-                            {
-
-                                sender:
-                                    myPhone,
-
-                                type:
-                                    'text',
-
-                                text:
-                                    text,
-
-                                timestamp:
-                                    Date.now()
-
-                            }
-                        );
-
-
-                        messageInput.value =
-                            '';
-
-
-                    } catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'ไม่สามารถส่งข้อความได้'
-                        );
-
-                    } finally {
-
-                        btnSendMsg.disabled =
-                            false;
-
-                        messageInput.focus();
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // THEME
-            // =========================================================
-
-            function applyTheme(
-                themeKey
-            ) {
-
-                selectedTheme =
-                    themeKey;
-
-
-                currentThemeClass =
-                    themes[themeKey] ||
-                    themes.rose;
-
-
-                btnSendMsg.className =
-                    `${currentThemeClass} hover:opacity-90 text-white h-11 px-5 rounded-xl font-medium transition shadow-sm flex items-center justify-center text-sm shrink-0`;
-
-            }
-
-
-            // =========================================================
-            // SETTINGS OPEN
-            // =========================================================
-
-            document.getElementById(
-                'chat-header-clickable'
-            ).addEventListener(
-                'click',
-                () => {
-
-                    if (
-                        !currentActiveFriend
-                    )
-                        return;
-
-
-                    document.getElementById(
-                        'setting-edit-name'
-                    ).value =
-                        chatTargetName.textContent;
-
-
-                    document.getElementById(
-                        'settings-modal'
-                    ).classList.remove(
-                        'hidden'
-                    );
-
-                    document.getElementById(
-                        'settings-modal'
-                    ).classList.add(
-                        'flex'
-                    );
-
-                }
-            );
-
-
-            // =========================================================
-            // SETTINGS CLOSE
-            // =========================================================
-
-            document.getElementById(
-                'btn-close-modal'
-            ).addEventListener(
-                'click',
-                closeSettings
-            );
-
-
-            function closeSettings() {
-
-                document.getElementById(
-                    'settings-modal'
-                ).classList.add(
-                    'hidden'
-                );
-
-                document.getElementById(
-                    'settings-modal'
-                ).classList.remove(
-                    'flex'
-                );
-
-            }
-
-
-            // =========================================================
-            // THEME BUTTONS
-            // =========================================================
-
-            document.querySelectorAll(
-                '.theme-btn'
-            ).forEach(
-                button => {
-
-                    button.addEventListener(
-                        'click',
-                        () => {
-
-                            applyTheme(
-                                button.dataset.theme
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-            // =========================================================
-            // SAVE SETTINGS
-            // =========================================================
-
-            document.getElementById(
-                'btn-save-settings'
-            ).addEventListener(
-                'click',
-                async () => {
-
-                    if (
-                        !currentActiveFriend
-                    )
-                        return;
-
-
-                    const name =
-                        document.getElementById(
-                            'setting-edit-name'
-                        ).value.trim();
-
-
-                    const autoDelete =
-                        document.getElementById(
-                            'setting-auto-delete'
-                        ).value;
-
-
-                    await set(
-                        ref(
-                            db,
-                            `users/${myPhone}/contacts/${currentActiveFriend}/savedName`
-                        ),
-                        name ||
-                        currentActiveFriend
-                    );
-
-
-                    await set(
-                        ref(
-                            db,
-                            `users/${myPhone}/chat_settings/${currentActiveFriend}`
-                        ),
-                        {
-
-                            theme:
-                                selectedTheme,
-
-                            autoDelete:
-                                autoDelete
-
-                        }
-                    );
-
-
-                    chatTargetName.textContent =
-                        name ||
-                        currentActiveFriend;
-
-
-                    closeSettings();
-
-                }
-            );
-
-
-            // =========================================================
-            // CLEAR CHAT
-            // =========================================================
-
-            document.getElementById(
-                'btn-clear-all-messages'
-            ).addEventListener(
-                'click',
-                async () => {
-
-                    if (
-                        !currentActiveFriend
-                    )
-                        return;
-
-
-                    if (
-                        !confirm(
-                            'ยืนยันลบประวัติข้อความทั้งหมดหรือไม่?'
-                        )
-                    )
-                        return;
-
-
-                    const roomId =
-                        getChatRoomId(
-                            myPhone,
-                            currentActiveFriend
-                        );
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `chats/${roomId}/messages`
-                        )
-                    );
-
-
-                    closeSettings();
-
-                }
-            );
-
-
-            // =========================================================
-            // BLOCK FRIEND
-            // =========================================================
-
-            document.getElementById(
-                'btn-block-friend'
-            ).addEventListener(
-                'click',
-                async () => {
-
-                    if (
-                        !currentActiveFriend
-                    )
-                        return;
-
-
-                    const friend =
-                        currentActiveFriend;
-
-
-                    if (
-                        !confirm(
-                            `ต้องการบล็อกและลบ ${friend} หรือไม่?`
-                        )
-                    )
-                        return;
-
-
-                    const roomId =
-                        getChatRoomId(
-                            myPhone,
-                            friend
-                        );
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `users/${myPhone}/contacts/${friend}`
-                        )
-                    );
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `users/${friend}/contacts/${myPhone}`
-                        )
-                    );
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `chats/${roomId}`
-                        )
-                    );
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `users/${myPhone}/chat_settings/${friend}`
-                        )
-                    );
-
-
-                    currentActiveFriend =
-                        null;
-
-
-                    activeChat.classList.add(
-                        'hidden'
-                    );
-
-                    noChatSelected.classList.remove(
-                        'hidden'
-                    );
-
-                    sidebar.classList.remove(
-                        'hidden'
-                    );
-
-                    chatWindow.classList.add(
-                        'hidden'
-                    );
-
-
-                    closeSettings();
-
-                }
-            );
-
-
-            // =========================================================
-            // MOBILE BACK
-            // =========================================================
-
-            btnBackSidebar.addEventListener(
-                'click',
-                () => {
-
-                    if (
-                        currentMessagesListener
-                    ) {
-
-                        currentMessagesListener();
-
-                        currentMessagesListener =
-                            null;
-
-                    }
-
-
-                    currentActiveFriend =
-                        null;
-
-
-                    chatWindow.classList.add(
-                        'hidden'
-                    );
-
-                    sidebar.classList.remove(
-                        'hidden'
-                    );
-
-                }
-            );
-
-
-            // =========================================================
-            // PEERJS
-            // =========================================================
-
-            function initializePeer() {
-
-                try {
-
-                    peer =
-                        new Peer(
-                            myPhone,
-                            {
-                                debug: 1
-                            }
-                        );
-
-
-                    peer.on(
-                        'open',
-                        id => {
-
-                            console.log(
-                                'PeerJS connected:',
-                                id
-                            );
-
-                        }
-                    );
-
-
-                    peer.on(
-                        'error',
-                        error => {
-
-                            console.error(
-                                'PeerJS:',
-                                error
-                            );
-
-                        }
-                    );
-
-
-                    peer.on(
-                        'call',
-                        async call => {
-
-                            currentCall =
-                                call;
-
-
-                            call.on(
-                                'stream',
-                                remoteStream => {
-
-                                    remoteVideo.srcObject =
-                                        remoteStream;
-
-                                    remoteVideo.classList.remove(
-                                        'hidden'
-                                    );
-
-                                    audioCallIcon.classList.add(
-                                        'hidden'
-                                    );
-
-                                    callStatus.textContent =
-                                        'กำลังสนทนา...';
-
-                                }
-                            );
-
-
-                            call.on(
-                                'close',
-                                () => {
-
-                                    closeCallUI();
-
-                                }
-                            );
-
-                        }
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-                }
-
-            }
-
-
-            initializePeer();
-
-
-            // =========================================================
-            // INCOMING CALL
-            // =========================================================
-
-            onValue(
-                ref(
-                    db,
-                    `calls/${myPhone}`
-                ),
-                snapshot => {
-
-                    const data =
-                        snapshot.val();
-
-
-                    if (
-                        data &&
-                        data.status ===
-                        'ringing'
-                    ) {
-
-                        pendingCallData =
-                            data;
-
-
-                        callerName.textContent =
-                            data.callerName ||
-                            data.callerPhone;
-
-
-                        callTypeText.textContent =
-                            data.isVideo
-                                ? '📹 มีวิดีโอคอลเข้า'
-                                : '📞 มีสายเสียงเข้า';
-
-
-                        incomingCallModal.classList.remove(
-                            'hidden'
-                        );
-
-                        incomingCallModal.classList.add(
-                            'flex'
-                        );
-
-
-                        ringtoneIncoming
-                            .play()
-                            .catch(
-                                () => { }
-                            );
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // START CALL
-            // =========================================================
-
-            async function startCall(
-                isVideo
-            ) {
-
-                if (
-                    !currentActiveFriend
-                )
-                    return;
-
-
-                if (
-                    !peer ||
-                    peer.destroyed
-                ) {
-
-                    alert(
-                        'ระบบโทรยังไม่พร้อม กรุณารอสักครู่แล้วลองใหม่'
-                    );
-
-                    return;
-
-                }
-
-
-                try {
-
-                    localStream =
-                        await navigator
-                            .mediaDevices
-                            .getUserMedia({
-
-                                video:
-                                    isVideo,
-
-                                audio:
-                                    true
-
-                            });
-
-
-                    localVideo.srcObject =
-                        localStream;
-
-
-                    if (
-                        isVideo
-                    ) {
-
-                        localVideo.classList.remove(
-                            'hidden'
-                        );
-
-                        audioCallIcon.classList.add(
-                            'hidden'
-                        );
-
-                    } else {
-
-                        localVideo.classList.add(
-                            'hidden'
-                        );
-
-                        audioCallIcon.classList.remove(
-                            'hidden'
-                        );
-
-                    }
-
-
-                    callScreenModal.classList.remove(
-                        'hidden'
-                    );
-
-                    callScreenModal.classList.add(
-                        'flex'
-                    );
-
-
-                    callScreenName.textContent =
-                        chatTargetName.textContent;
-
-
-                    callStatus.textContent =
-                        'กำลังเรียกสาย...';
-
-
-                    micEnabled =
-                        true;
-
-                    camEnabled =
-                        true;
-
-
-                    ringtoneOutgoing
-                        .play()
-                        .catch(
-                            () => { }
-                        );
-
-
-                    await set(
-                        ref(
-                            db,
-                            `calls/${currentActiveFriend}`
-                        ),
-                        {
-
-                            callerPhone:
-                                myPhone,
-
-                            callerName:
-                                chatTargetName.textContent,
-
-                            isVideo:
-                                isVideo,
-
-                            status:
-                                'ringing',
-
-                            timestamp:
-                                Date.now()
-
-                        }
-                    );
-
-
-                    const call =
-                        peer.call(
-                            currentActiveFriend,
-                            localStream
-                        );
-
-
-                    currentCall =
-                        call;
-
-
-                    call.on(
-                        'stream',
-                        remoteStream => {
-
-                            ringtoneOutgoing.pause();
-
-                            callStatus.textContent =
-                                'กำลังสนทนา...';
-
-                            remoteVideo.srcObject =
-                                remoteStream;
-
-                            if (
-                                isVideo
-                            ) {
-
-                                remoteVideo.classList.remove(
-                                    'hidden'
-                                );
-
-                            } else {
-
-                                remoteVideo.classList.add(
-                                    'hidden'
-                                );
-
-                                audioCallIcon.classList.remove(
-                                    'hidden'
-                                );
-
-                            }
-
-                        }
-                    );
-
-
-                    call.on(
-                        'close',
-                        closeCallUI
-                    );
-
-
-                    call.on(
-                        'error',
-                        error => {
-
-                            console.error(
-                                error
-                            );
-
-                            closeCallUI();
-
-                        }
-                    );
-
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-                    alert(
-                        'ไม่สามารถใช้ไมโครโฟนหรือกล้องได้: ' +
-                        error.message
-                    );
-
-                    closeCallUI();
-
-                }
-
-            }
-
-
-            btnVoiceCall.addEventListener(
-                'click',
-                () =>
-                    startCall(false)
-            );
-
-
-            btnVideoCall.addEventListener(
-                'click',
-                () =>
-                    startCall(true)
-            );
-
-
-            // =========================================================
-            // ACCEPT CALL
-            // =========================================================
-
-            btnAcceptCall.addEventListener(
-                'click',
-                async () => {
-
-                    if (
-                        !pendingCallData ||
-                        !currentCall
-                    )
-                        return;
-
-
-                    ringtoneIncoming.pause();
-
-
-                    incomingCallModal.classList.add(
-                        'hidden'
-                    );
-
-                    incomingCallModal.classList.remove(
-                        'flex'
-                    );
-
-
-                    try {
-
-                        const isVideo =
-                            pendingCallData.isVideo;
-
-
-                        localStream =
-                            await navigator
-                                .mediaDevices
-                                .getUserMedia({
-
-                                    video:
-                                        isVideo,
-
-                                    audio:
-                                        true
-
-                                });
-
-
-                        localVideo.srcObject =
-                            localStream;
-
-
-                        callScreenModal.classList.remove(
-                            'hidden'
-                        );
-
-                        callScreenModal.classList.add(
-                            'flex'
-                        );
-
-
-                        callScreenName.textContent =
-                            pendingCallData.callerName ||
-                            pendingCallData.callerPhone;
-
-
-                        callStatus.textContent =
-                            'กำลังสนทนา...';
-
-
-                        if (
-                            isVideo
-                        ) {
-
-                            localVideo.classList.remove(
-                                'hidden'
-                            );
-
-                            audioCallIcon.classList.add(
-                                'hidden'
-                            );
-
-                        } else {
-
-                            localVideo.classList.add(
-                                'hidden'
-                            );
-
-                            audioCallIcon.classList.remove(
-                                'hidden'
-                            );
-
-                        }
-
-
-                        currentCall.answer(
-                            localStream
-                        );
-
-
-                        await update(
-                            ref(
-                                db,
-                                `calls/${myPhone}`
-                            ),
-                            {
-
-                                status:
-                                    'answered'
-
-                            }
-                        );
-
-
-                        currentCall.on(
-                            'stream',
-                            remoteStream => {
-
-                                remoteVideo.srcObject =
-                                    remoteStream;
-
-                                if (
-                                    isVideo
-                                ) {
-
-                                    remoteVideo.classList.remove(
-                                        'hidden'
-                                    );
-
-                                }
-
-                                callStatus.textContent =
-                                    'กำลังสนทนา...';
-
-                            }
-                        );
-
-
-                        currentCall.on(
-                            'close',
-                            closeCallUI
-                        );
-
-
-                    } catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'ไม่สามารถรับสายได้: ' +
-                            error.message
-                        );
-
-                        closeCallUI();
-
-                    }
-
-                }
-            );
-
-
-            // =========================================================
-            // REJECT
-            // =========================================================
-
-            btnRejectCall.addEventListener(
-                'click',
-                async () => {
-
-                    ringtoneIncoming.pause();
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `calls/${myPhone}`
-                        )
-                    );
-
-
-                    closeCallUI();
-
-                }
-            );
-
-
-            // =========================================================
-            // END CALL
-            // =========================================================
-
-            btnEndCall.addEventListener(
-                'click',
-                () => {
-
-                    endCallSession();
-
-                }
-            );
-
-
-            async function endCallSession() {
-
-                try {
-
-                    if (
-                        currentActiveFriend
-                    ) {
-
-                        await remove(
-                            ref(
-                                db,
-                                `calls/${currentActiveFriend}`
-                            )
-                        );
-
-                    }
-
-
-                    await remove(
-                        ref(
-                            db,
-                            `calls/${myPhone}`
-                        )
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-                }
-
-
-                closeCallUI();
-
-            }
-
-
-            // =========================================================
-            // CLOSE CALL
-            // =========================================================
-
-            function closeCallUI() {
-
-                ringtoneIncoming.pause();
-
-                ringtoneOutgoing.pause();
-
-
-                ringtoneIncoming.currentTime =
-                    0;
-
-                ringtoneOutgoing.currentTime =
-                    0;
-
-
-                if (
-                    currentCall
-                ) {
-
-                    try {
-
-                        currentCall.close();
-
-                    } catch (e) { }
-
-                    currentCall =
-                        null;
-
-                }
-
-
-                if (
-                    localStream
-                ) {
-
-                    localStream
-                        .getTracks()
-                        .forEach(
-                            track =>
-                                track.stop()
-                        );
-
-                    localStream =
-                        null;
-
-                }
-
-
-                localVideo.srcObject =
-                    null;
-
-                remoteVideo.srcObject =
-                    null;
-
-
-                localVideo.classList.add(
-                    'hidden'
-                );
-
-                remoteVideo.classList.add(
-                    'hidden'
-                );
-
-                audioCallIcon.classList.remove(
-                    'hidden'
-                );
-
-
-                incomingCallModal.classList.add(
-                    'hidden'
-                );
-
-                incomingCallModal.classList.remove(
-                    'flex'
-                );
-
-
-                callScreenModal.classList.add(
-                    'hidden'
-                );
-
-                callScreenModal.classList.remove(
-                    'flex'
-                );
-
-
-                pendingCallData =
-                    null;
-
-
-                micEnabled =
-                    true;
-
-                camEnabled =
-                    true;
-
-
-                btnToggleMic.textContent =
-                    '🎙️';
-
-                btnToggleCam.textContent =
-                    '📹';
-
-            }
-
-
-            // =========================================================
-            // MIC
-            // =========================================================
-
-            btnToggleMic.addEventListener(
-                'click',
-                () => {
-
-                    if (
-                        !localStream
-                    )
-                        return;
-
-
-                    const tracks =
-                        localStream
-                            .getAudioTracks();
-
-
-                    if (
-                        !tracks.length
-                    )
-                        return;
-
-
-                    micEnabled =
-                        !micEnabled;
-
-
-                    tracks.forEach(
-                        track => {
-
-                            track.enabled =
-                                micEnabled;
-
-                        }
-                    );
-
-
-                    btnToggleMic.textContent =
-                        micEnabled
-                            ? '🎙️'
-                            : '🔇';
-
-                }
-            );
-
-
-            // =========================================================
-            // CAMERA
-            // =========================================================
-
-            btnToggleCam.addEventListener(
-                'click',
-                () => {
-
-                    if (
-                        !localStream
-                    )
-                        return;
-
-
-                    const tracks =
-                        localStream
-                            .getVideoTracks();
-
-
-                    if (
-                        !tracks.length
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    camEnabled =
-                        !camEnabled;
-
-
-                    tracks.forEach(
-                        track => {
-
-                            track.enabled =
-                                camEnabled;
-
-                        }
-                    );
-
-
-                    btnToggleCam.textContent =
-                        camEnabled
-                            ? '📹'
-                            : '📷';
-
-                }
-            );
-
-
-            // =========================================================
-            // PREVENT PINCH ZOOM
-            // =========================================================
-
-            document.addEventListener(
-                'gesturestart',
-                e => {
-
-                    e.preventDefault();
-
-                },
-                {
-                    passive: false
-                }
-            );
-
-
-            document.addEventListener(
-                'gesturechange',
-                e => {
-
-                    e.preventDefault();
-
-                },
-                {
-                    passive: false
-                }
-            );
-
-
-            document.addEventListener(
-                'gestureend',
-                e => {
-
-                    e.preventDefault();
-
-                },
-                {
-                    passive: false
-                }
-            );
-
-
-            let lastTouchEnd =
-                0;
-
-
-            document.addEventListener(
-                'touchend',
-                e => {
-
-                    const now =
-                        Date.now();
-
-
-                    if (
-                        now -
-                        lastTouchEnd <=
-                        300
-                    ) {
-
-                        e.preventDefault();
-
-                    }
-
-
-                    lastTouchEnd =
-                        now;
-
-                },
-                {
-                    passive: false
-                }
-            );
-
-
-            // =========================================================
-            // ENTER TO SEND
-            // =========================================================
-
-            messageInput.addEventListener(
-                'keydown',
-                e => {
-
-                    if (
-                        e.key === 'Enter' &&
-                        !e.shiftKey
-                    ) {
-
-                        e.preventDefault();
-
-                        chatForm.requestSubmit();
-
-                    }
-
-                }
-            );
-
-
-            console.log(
-                'Hukhujai Chat Ready'
-            );
-
-            // ... (โค้ดฟังก์ชันเดิมของคุณ เช่น getYouTubeId หรือฟังก์ชันอื่นๆ) ...
-
-            // นำโค้ด JavaScript (ข้อ 3 จากคำตอบที่แล้ว) มาวางต่อตรงนี้ได้เลยครับ 👇
-            // =========================================================
-            // NOTIFICATION SOUND SYSTEM
-            // =========================================================
-            const chatNotificationSound = document.getElementById('chat-notification-sound');
-            // ... (ยาวไปจนจบฟังก์ชัน btnRejectCall.addEventListener) ...
-
-            // ==========================================
-            // SYSTEM NOTIFICATION (FCM SETUP)
-            // ==========================================
-            const messaging = getMessaging(app);
-
-            async function requestNotificationPermission() {
-                try {
-                    const permission = await Notification.requestPermission();
-
-                    if (permission === 'granted') {
-                        console.log('อนุญาตการแจ้งเตือนเรียบร้อยแล้ว');
-
-                        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-
-                        const currentToken = await getToken(messaging, {
-                            serviceWorkerRegistration: registration,
-                            vapidKey: 'BLH8thi9C0Mxd5X58SC45EcOttDgdrm4e26wme4UTLZcQ_u-UKEeosi_idL3UpF7igmnY1H-LFJhZ6NDVlfZVcs'
-                        });
-
-                        if (currentToken) {
-                            await set(ref(db, `users/${myPhone}/fcmToken`), currentToken);
-                            console.log('บันทึก FCM Token เรียบร้อยแล้ว');
-                        }
-                    } else {
-                        alert('กรุณากดอนุญาตการแจ้งเตือน (Allow) เพื่อให้ระบบเตือนเวลาคนโทรหาขณะปิดหน้าจอครับ');
-                    }
-                } catch (err) {
-                    console.error('เกิดข้อผิดพลาดในการขอสิทธิ์แจ้งเตือน:', err);
                 }
             }
+            originalRender(messages, roomId);
+        };
 
-            requestNotificationPermission();
-
-
-        </script>
-
+        console.log('Hukhujai Chat Ready with Profile & Sounds');
+    </script>
 </body>
 
 </html>
